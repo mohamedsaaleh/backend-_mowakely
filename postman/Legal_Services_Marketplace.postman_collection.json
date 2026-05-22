@@ -1,0 +1,944 @@
+{
+  "info": {
+    "_postman_id": "3f8fc7a7-legal-marketplace-collection",
+    "name": "Legal Services Marketplace API",
+    "description": "Postman collection to test the Legal Services Marketplace backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "legalBaseUrl", "value": "http://localhost:3000" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Root",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/" }
+        },
+        {
+          "name": "Health",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/health" }
+        },
+        {
+          "name": "Health Ready",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/health/ready" }
+        },
+        {
+          "name": "Health Live",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/health/live" }
+        },
+        {
+          "name": "Health Detailed",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/health/detailed" }
+        },
+        {
+          "name": "Swagger JSON",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api-docs.json" }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('adminAccessToken', data.accessToken || '');",
+                  "  pm.environment.set('adminRefreshToken', data.refreshToken || '');",
+                  "  pm.environment.set('adminUserId', (data.user && (data.user.id || data.user._id)) || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Admin\",\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{password}}\",\n  \"role\": \"admin\",\n  \"phone\": \"+15550000001\",\n  \"city\": \"Cairo\",\n  \"address\": \"Admin Address\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('adminAccessToken', data.accessToken || '');",
+                  "  pm.environment.set('adminRefreshToken', data.refreshToken || '');",
+                  "  pm.environment.set('adminUserId', (data.user && (data.user.id || data.user._id)) || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Register Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('clientAccessToken', data.accessToken || '');",
+                  "  pm.environment.set('clientRefreshToken', data.refreshToken || '');",
+                  "  pm.environment.set('clientUserId', (data.user && (data.user.id || data.user._id)) || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Client\",\n  \"email\": \"{{clientEmail}}\",\n  \"password\": \"{{password}}\",\n  \"role\": \"client\",\n  \"phone\": \"+15550000002\",\n  \"city\": \"Cairo\",\n  \"address\": \"Client Address\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('clientAccessToken', data.accessToken || '');",
+                  "  pm.environment.set('clientRefreshToken', data.refreshToken || '');",
+                  "  pm.environment.set('clientUserId', (data.user && (data.user.id || data.user._id)) || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{clientEmail}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Register Lawyer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('lawyerAccessToken', data.accessToken || '');",
+                  "  pm.environment.set('lawyerRefreshToken', data.refreshToken || '');",
+                  "  pm.environment.set('lawyerUserId', (data.user && (data.user.id || data.user._id)) || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Lawyer\",\n  \"email\": \"{{lawyerEmail}}\",\n  \"password\": \"{{password}}\",\n  \"role\": \"lawyer\",\n  \"phone\": \"+15550000003\",\n  \"city\": \"Cairo\",\n  \"address\": \"Lawyer Address\",\n  \"specialization\": \"Family Law\",\n  \"years_of_experience\": 5,\n  \"office_address\": \"Office 12\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login Lawyer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('lawyerAccessToken', data.accessToken || '');",
+                  "  pm.environment.set('lawyerRefreshToken', data.refreshToken || '');",
+                  "  pm.environment.set('lawyerUserId', (data.user && (data.user.id || data.user._id)) || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{lawyerEmail}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Refresh Client Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{clientRefreshToken}}\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/refresh"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/auth/me"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{clientEmail}}\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/forgot-password"
+          }
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "url": "{{legalBaseUrl}}/api/auth/verify-email/{{messageToken}}"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/reset-password/{{messageToken}}"
+          }
+        },
+        {
+          "name": "Logout Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clientAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{clientRefreshToken}}\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get Categories",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/categories" }
+        },
+        {
+          "name": "Get Category By ID",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/categories/{{categoryId}}" }
+        },
+        {
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('categoryId', data._id || data.id || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"FAMILY_LAW_POSTMAN\",\n  \"description\": \"Family law category\",\n  \"icon\": \"gavel\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/categories"
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"FAMILY_LAW_UPDATED\",\n  \"description\": \"Updated category\",\n  \"icon\": \"balance\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/categories/{{categoryId}}"
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/categories/{{categoryId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cases",
+      "item": [
+        {
+          "name": "List Cases",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/cases?page=1&limit=10" }
+        },
+        {
+          "name": "Search Cases",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/cases?search=Family" }
+        },
+        {
+          "name": "Create Case",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('caseId', data._id || data.id || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clientAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Need family law consultation\",\n  \"description\": \"Detailed case description for postman testing.\",\n  \"category\": \"{{categoryId}}\",\n  \"city\": \"Cairo\",\n  \"budget\": 5000,\n  \"priority\": \"medium\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/cases"
+          }
+        },
+        {
+          "name": "Get My Cases",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/cases/my-cases"
+          }
+        },
+        {
+          "name": "Get Lawyer Cases",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{lawyerAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/cases/lawyer-cases"
+          }
+        },
+        {
+          "name": "Get Case By ID",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/cases/{{caseId}}" }
+        },
+        {
+          "name": "Update Case",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clientAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated case title\",\n  \"description\": \"Updated description\",\n  \"budget\": 6500\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/cases/{{caseId}}"
+          }
+        },
+        {
+          "name": "Update Case Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clientAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"open\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/cases/{{caseId}}/status"
+          }
+        },
+        {
+          "name": "Delete Case",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/cases/{{caseId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Offers",
+      "item": [
+        {
+          "name": "Create Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('offerId', data._id || data.id || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{lawyerAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"case\": \"{{caseId}}\",\n  \"price\": 4500,\n  \"message\": \"I can help you with this case.\",\n  \"delivery_time\": 30\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/offers"
+          }
+        },
+        {
+          "name": "Get My Offers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{lawyerAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/offers/my-offers"
+          }
+        },
+        {
+          "name": "Get Offers By Case",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/offers/case/{{caseId}}" }
+        },
+        {
+          "name": "Accept Offer",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/offers/{{offerId}}/accept"
+          }
+        },
+        {
+          "name": "Reject Offer",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/offers/{{offerId}}/reject"
+          }
+        },
+        {
+          "name": "Delete Offer",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{lawyerAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/offers/{{offerId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lawyers",
+      "item": [
+        {
+          "name": "Get All Lawyers",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/lawyers?page=1&limit=10" }
+        },
+        {
+          "name": "Search Lawyers",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/lawyers?search=family" }
+        },
+        {
+          "name": "Get My Lawyer Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('lawyerProfileId', data._id || data.id || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{lawyerAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/lawyers/me"
+          }
+        },
+        {
+          "name": "Update My Lawyer Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{lawyerAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialization\": \"Family Law\",\n  \"years_of_experience\": 7,\n  \"office_address\": \"Downtown Office\",\n  \"availability_status\": true,\n  \"rate\": 300,\n  \"full_name\": \"Updated Lawyer\",\n  \"city\": \"Cairo\",\n  \"bio\": \"Experienced lawyer\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/lawyers/me"
+          }
+        },
+        {
+          "name": "Get Lawyer By ID",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/lawyers/{{lawyerProfileId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "Get My Client Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('clientProfileId', data._id || data.id || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/clients/me"
+          }
+        },
+        {
+          "name": "Update My Client Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clientAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Updated Client\",\n  \"city\": \"Giza\",\n  \"address\": \"Updated Address\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/clients/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/notifications?page=1&limit=10"
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/notifications/{{notificationId}}/read"
+          }
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/notifications/read-all"
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/notifications/{{notificationId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clientAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewedLawyer\": \"{{lawyerProfileId}}\",\n  \"case\": \"{{caseId}}\",\n  \"rating\": 5,\n  \"comment\": \"Excellent service\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/reviews"
+          }
+        },
+        {
+          "name": "Get Reviews By Lawyer",
+          "request": { "method": "GET", "url": "{{legalBaseUrl}}/api/reviews/lawyer/{{lawyerProfileId}}?page=1&limit=10" }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "Create Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('invoiceId', data._id || data.id || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"case\": \"{{caseId}}\",\n  \"client\": \"{{clientUserId}}\",\n  \"lawyer\": \"{{lawyerUserId}}\",\n  \"amount\": 5000,\n  \"dueDate\": \"2026-12-31T00:00:00.000Z\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/invoices"
+          }
+        },
+        {
+          "name": "Get My Invoices",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/invoices/my-invoices"
+          }
+        },
+        {
+          "name": "Get Lawyer Invoices",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{lawyerAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/invoices/lawyer-invoices"
+          }
+        },
+        {
+          "name": "Get Invoice By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/invoices/{{invoiceId}}"
+          }
+        },
+        {
+          "name": "Mark Invoice Paid",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/invoices/{{invoiceId}}/pay"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payouts",
+      "item": [
+        {
+          "name": "Request Payout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([200,201].includes(pm.response.code)) {",
+                  "  const data = pm.response.json().data || {};",
+                  "  pm.environment.set('payoutId', data._id || data.id || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{lawyerAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000,\n  \"method\": \"bank_transfer\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/payouts"
+          }
+        },
+        {
+          "name": "Get My Payouts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{lawyerAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/payouts/my-payouts"
+          }
+        },
+        {
+          "name": "Get All Payouts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/payouts?page=1&limit=10"
+          }
+        },
+        {
+          "name": "Update Payout Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"processing\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/payouts/{{payoutId}}/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/admin/dashboard"
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/admin/users?page=1&limit=10"
+          }
+        },
+        {
+          "name": "Get All Admin Lawyers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/admin/lawyers?page=1&limit=10"
+          }
+        },
+        {
+          "name": "Verify Lawyer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": true\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/admin/lawyers/{{lawyerProfileId}}/verify"
+          }
+        },
+        {
+          "name": "Ban User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isBanned\": true\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/admin/users/{{clientUserId}}/ban"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/users?page=1&limit=10"
+          }
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/users/{{clientUserId}}"
+          }
+        },
+        {
+          "name": "Update User By ID",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clientAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Client Updated From Users Route\",\n  \"city\": \"Alexandria\",\n  \"bio\": \"Updated bio\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/users/{{clientUserId}}"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/users/{{clientUserId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "description": "Current code mounts messages on /api/messages, but controller/service still expect caseId as a route param internally. These requests represent the current mounted paths and may need a route refactor to work correctly.",
+      "item": [
+        {
+          "name": "Get Messages",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/messages"
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clientAccessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hello from Postman\"\n}"
+            },
+            "url": "{{legalBaseUrl}}/api/messages"
+          }
+        },
+        {
+          "name": "Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientAccessToken}}" }],
+            "url": "{{legalBaseUrl}}/api/messages/unread"
+          }
+        }
+      ]
+    }
+  ]
+}
