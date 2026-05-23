@@ -17,6 +17,7 @@ const mongoose = require('mongoose');
 const os = require('os');
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(helmet({
   contentSecurityPolicy: {
@@ -89,10 +90,9 @@ async function initializeDatabase() {
     await connectDB();
     isDbConnected = true;
     dbConnectionTime = new Date();
-    logger.info('Database connected successfully');
+    logger.info('✅ Database connected successfully');
   } catch (err) {
-    isDbConnected = false;
-    logger.error('Database connection failed:', err);
+    logger.error('❌ Database connection failed:', err);
     process.exit(1);
   }
 }
