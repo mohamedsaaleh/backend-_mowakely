@@ -47,6 +47,19 @@ class AdminController {
       next(error);
     }
   }
+
+  async markAsPaidOnly(req, res, next) {
+    try {
+      const invoice = await adminService.markAsPaidOnly(
+        req.params.id,
+        req.user._id,
+        req.body?.reason || 'Manual admin override'
+      );
+      res.json({ success: true, data: invoice });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new AdminController();

@@ -13,7 +13,7 @@ const invoiceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'paid', 'cancelled'],
+    enum: ['pending', 'cancelled', 'completed'],
     default: 'pending'
   },
   value: {
@@ -24,7 +24,44 @@ const invoiceSchema = new mongoose.Schema({
   paid_at: {
     type: Date,
     default: null
-  }
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['manual', 'paymob'],
+    default: 'manual'
+  },
+  paymentTransactionId: {
+    type: String,
+    default: null
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'paid', 'failed'],
+    default: 'pending'
+  },
+  paymentOverrides: [
+    {
+      type: {
+        type: String,
+        enum: ['manual_admin_override'],
+        required: true
+      },
+      adminId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now
+      },
+      reason: {
+        type: String,
+        required: true,
+        trim: true
+      }
+    }
+  ]
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
@@ -32,6 +69,7 @@ const invoiceSchema = new mongoose.Schema({
 invoiceSchema.index({ lawyer: 1 });
 invoiceSchema.index({ case: 1 });
 invoiceSchema.index({ status: 1 });
+invoiceSchema.index({ paymentStatus: 1 });
 
 const Invoice = mongoose.model('Invoice', invoiceSchema);
 

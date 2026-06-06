@@ -44,23 +44,6 @@ class InvoiceService {
     };
   }
 
-  async markAsPaid(invoiceId) {
-    const invoice = await Invoice.findById(invoiceId);
-    if (!invoice) {
-      throw new AppError('Invoice not found', 404);
-    }
-
-    if (invoice.status === 'paid') {
-      throw new AppError('Invoice already paid', 400);
-    }
-
-    invoice.status = 'paid';
-    invoice.paid_at = new Date();
-    await invoice.save();
-
-    return invoice;
-  }
-
   async cancel(invoiceId) {
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {

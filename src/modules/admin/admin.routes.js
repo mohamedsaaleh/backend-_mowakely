@@ -129,5 +129,6 @@ router.get('/users', adminController.getAllUsers);
 router.get('/lawyers', adminController.getAllLawyers);
 router.patch('/lawyers/:id/verify', adminController.verifyLawyer);
 router.patch('/users/:id/ban', adminController.banUser);
+router.patch('/invoices/:id/force-pay', adminController.markAsPaidOnly);
 
 module.exports = router;

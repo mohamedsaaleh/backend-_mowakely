@@ -112,6 +112,7 @@ const clientRoutes = require('./modules/clients/clients.routes');
 const adminRoutes = require('./modules/admin/admin.routes');
 const payoutRoutes = require('./modules/payouts/payouts.routes');
 const userRoutes = require('./modules/users/users.routes');
+const paymentRoutes = require('./modules/payments/payments.routes');
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -126,6 +127,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payouts', payoutRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/payments', paymentRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',

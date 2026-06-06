@@ -90,26 +90,6 @@
  *         description: Invoice retrieved
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
- * 
- * /api/invoices/{id}/pay:
- *   patch:
- *     summary: Mark invoice as paid (Client only)
- *     tags: [Invoices]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Invoice marked as paid
- *       401:
- *         $ref: '#/components/responses/Unauthorized'
- *       403:
- *         $ref: '#/components/responses/Forbidden'
  */
 
 const express = require('express');
@@ -122,6 +102,4 @@ router.post('/', authenticate, authorize('admin'), invoiceController.create);
 router.get('/my-invoices', authenticate, authorize('client'), invoiceController.getMyInvoices);
 router.get('/lawyer-invoices', authenticate, authorize('lawyer'), invoiceController.getLawyerInvoices);
 router.get('/:id', authenticate, invoiceController.getById);
-router.patch('/:id/pay', authenticate, authorize('client'), invoiceController.markAsPaid);
-
 module.exports = router;

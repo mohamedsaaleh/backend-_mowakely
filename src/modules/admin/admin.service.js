@@ -5,6 +5,7 @@ const { Invoice } = require('../invoices/invoices.model');
 const { Payout } = require('../payouts/payouts.model');
 const { AppError } = require('../../middlewares/error.middleware');
 const { escapeRegex } = require('../../utils/escapeRegex');
+const logger = require('../../utils/logger');
 
 class AdminService {
   async verifyLawyer(lawyerId, status) {
@@ -40,8 +41,8 @@ class AdminService {
     const completedCases = await Case.countDocuments({ status: 'completed' });
 
     const totalRevenue = await Invoice.aggregate([
-      { $match: { status: 'paid' } },
-      { $group: { _id: null, total: { $sum: '$total' } } }
+      { $match: { paymentStatus: 'paid' } },
+      { $group: { _id: null, total: { $sum: '$value' } } }
     ]);
 
     const pendingPayouts = await Payout.aggregate([
@@ -101,6 +102,45 @@ class AdminService {
       lawyers,
       pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) }
     };
+  }
+
+  async markAsPaidOnly(invoiceId, adminId, reason = 'Manual admin override') {
+    logger.warn('DEPRECATED: manual payment override used via admin.markAsPaidOnly');
+
+    const invoice = await Invoice.findById(invoiceId);
+    if (!invoice) {
+      throw new AppError('Invoice not found', 404);
+    }
+    if (invoice.paymentStatus === 'paid') {
+      throw new AppError('Invoice already paid', 400);
+    }
+
+    const updatedInvoice = await Invoice.findOneAndUpdate(
+      { _id: invoiceId, paymentStatus: { $ne: 'paid' } },
+      {
+        $set: {
+          paymentStatus: 'paid',
+          paymentMethod: 'manual',
+          paymentTransactionId: null,
+          paid_at: new Date()
+        },
+        $push: {
+          paymentOverrides: {
+            type: 'manual_admin_override',
+            adminId,
+            timestamp: new Date(),
+            reason
+          }
+        }
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedInvoice) {
+      throw new AppError('Invoice already paid', 400);
+    }
+
+    return updatedInvoice;
   }
 }
 

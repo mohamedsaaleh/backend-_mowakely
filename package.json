@@ -33,6 +33,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@babel/types": "^7.29.7",
     "bcryptjs": "^2.4.3",
     "bull": "^4.16.5",
     "compression": "^1.7.4",
@@ -62,6 +63,7 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
     "eslint": "^8.56.0",
     "faker": "^6.6.6",
     "ioredis-mock": "^8.9.0",
