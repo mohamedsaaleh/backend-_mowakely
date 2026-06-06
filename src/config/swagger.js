@@ -49,21 +49,16 @@ All list endpoints support pagination with query parameters:
         url: 'https://opensource.org/licenses/MIT'
       }
     },
-    servers: [
-      {
-        url: 'http://localhost:3000/api',
-        description: 'Development server'
-      },
-      {
-        url: '{serverUrl}/api',
-        description: 'Production server',
-        variables: {
-          serverUrl: {
-            default: 'https://api.legalservices.com'
-          }
-        }
-      }
-    ],
+servers: [
+  {
+    url: 'http://localhost:3000/api',
+    description: 'Development server'
+  },
+  {
+    url: `${process.env.BASE_URL || 'https://your-app.up.railway.app'}/api`,
+    description: 'Production server'
+  }
+],
     components: {
       securitySchemes: {
         bearerAuth: {
