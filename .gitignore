@@ -43,10 +43,6 @@ uploads/
 tmp/
 temp/
 
-# Docker
-.dockerignore
-docker-compose.override.yml
-
 # Secrets (DO NOT COMMIT)
 *.pem
 *.key

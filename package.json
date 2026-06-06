@@ -20,7 +20,6 @@
     "test:sockets": "jest tests/sockets --coverage",
     "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit --forceExit",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand --no-cache",
-    "test:docker": "docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit"
   },
   "keywords": [
     "legal",
