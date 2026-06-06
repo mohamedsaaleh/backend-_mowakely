@@ -13,7 +13,7 @@ class PayoutController {
       next(error);
     }
   }
-
+// getMyPayouts
   async getMyPayouts(req, res, next) {
     try {
       const lawyer = await Lawyer.findOne({ user: req.user._id });
