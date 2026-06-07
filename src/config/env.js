@@ -32,6 +32,13 @@ module.exports = {
     from: process.env.EMAIL_FROM || 'noreply@legalservices.com'
   },
 
+  paymob: {
+    apiKey: process.env.PAYMOB_API_KEY || '',
+    integrationId: process.env.PAYMOB_INTEGRATION_ID || '',
+    iframeId: process.env.PAYMOB_IFRAME_ID || '',
+    hmacSecret: process.env.PAYMOB_HMAC_SECRET || ''
+  },
+
   logging: {
     level: process.env.LOG_LEVEL || 'info',
     dir: process.env.LOG_DIR || 'logs'

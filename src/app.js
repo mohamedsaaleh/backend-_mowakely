@@ -4,7 +4,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
 const hpp = require('hpp');
 const morgan = require('morgan');
 const config = require('./config/env');
@@ -15,6 +14,7 @@ const logger = require('./utils/logger');
 const path = require('path');
 const mongoose = require('mongoose');
 const os = require('os');
+const { sanitizeHtml } = require('./utils/securityHelper');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -45,9 +45,32 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(mongoSanitize());
 
-app.use(xss());
+const xssSanitize = (value) => {
+  if (typeof value === 'string') {
+    return value.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+                .replace(/<[^>]*>/g, '');
+  }
+  return value;
+};
 
-app.use(hpp());
+const deepSanitize = (obj) => {
+  if (!obj || typeof obj !== 'object') return xssSanitize(obj);
+  if (Array.isArray(obj)) return obj.map(deepSanitize);
+  Object.keys(obj).forEach(key => { obj[key] = deepSanitize(obj[key]); });
+  return obj;
+};
+
+app.use((req, res, next) => {
+  if (req.body) deepSanitize(req.body);
+  if (req.query) deepSanitize(req.query);
+  if (req.params) deepSanitize(req.params);
+  next();
+});
+
+app.use(hpp({
+  whitelist: ['page', 'limit', 'sort', 'status', 'category', 'city', 'search', 'role', 'minBudget', 'maxBudget', 'rating', 'specialization', 'minRating', 'fields', 'order', 'unreadOnly', 'availability_status']
+}));
 
 if (config.nodeEnv !== 'test') {
   const logStream = {
@@ -112,6 +135,7 @@ const clientRoutes = require('./modules/clients/clients.routes');
 const adminRoutes = require('./modules/admin/admin.routes');
 const payoutRoutes = require('./modules/payouts/payouts.routes');
 const userRoutes = require('./modules/users/users.routes');
+const paymentRoutes = require('./modules/payments/payments.routes');
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -126,6 +150,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api//admin', adminRoutes);
 app.use('/api/payouts', payoutRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/payments', paymentRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',

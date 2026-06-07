@@ -20,8 +20,8 @@ class PayoutService {
       throw new AppError('This invoice does not belong to you', 403);
     }
 
-    if (invoice.status !== 'paid') {
-      throw new AppError('Invoice must be paid before requesting payout', 400);
+    if (invoice.paymentStatus !== 'paid') {
+      throw new AppError('Payment not confirmed. Invoice must be paid before requesting payout.', 400);
     }
 
     const existingPayout = await Payout.findOne({ invoice: payoutData.invoice, status: { $in: ['pending', 'processing'] } });

@@ -56,6 +56,18 @@ module.exports = {
     REFUNDED: 'refunded'
   },
 
+  PAYMENT_STATUS: {
+    PENDING: 'pending',
+    PROCESSING: 'processing',
+    PAID: 'paid',
+    FAILED: 'failed'
+  },
+
+  PAYMENT_METHOD: {
+    MANUAL: 'manual',
+    PAYMOB: 'paymob'
+  },
+
   PAYOUT_STATUS: {
     PENDING: 'pending',
     PROCESSING: 'processing',

@@ -23,7 +23,7 @@ A production-ready Node.js + Express + MongoDB backend for a legal services mark
 - **File Upload**: Multer with image compression and cloud storage ready
 - **WebSocket**: Socket.IO with authentication, rooms, typing indicators
 - **Testing**: Jest with unit and integration tests
-- **Deployment**: Docker, PM2, Nginx configuration
+- **Deployment**: PM2, Nginx configuration
 - **Logging**: Winston with request IDs, audit logs, error tracking
 - **Health Monitoring**: Health endpoints with readiness/liveness checks
 
@@ -38,7 +38,7 @@ A production-ready Node.js + Express + MongoDB backend for a legal services mark
 - **Real-time**: Socket.IO
 - **Documentation**: Swagger UI
 - **Testing**: Jest + Supertest
-- **Deployment**: Docker, PM2, Nginx
+- **Deployment**: PM2, Nginx
 
 ## Project Structure
 
@@ -164,18 +164,6 @@ Run tests in watch mode:
 npm run test:watch
 ```
 
-### Running with Docker
-
-Development:
-```bash
-docker-compose up
-```
-
-Production:
-```bash
-docker-compose -f docker-compose.prod.yml up -d
-```
-
 ## API Documentation
 
 Once the server is running, access the Swagger documentation:
@@ -284,12 +272,11 @@ OpenAPI JSON: http://localhost:3000/api-docs.json
 - Monitor memory and CPU usage
 
 ### Deployment
-1. Build Docker image
-2. Configure environment variables
-3. Set up reverse proxy (Nginx)
-4. Use PM2 for process management
-5. Configure SSL/TLS
-6. Set up backup strategy
+1. Configure environment variables
+2. Set up reverse proxy (Nginx)
+3. Use PM2 for process management
+4. Configure SSL/TLS
+5. Set up backup strategy
 
 ## License
 

@@ -20,7 +20,6 @@
     "test:sockets": "jest tests/sockets --coverage",
     "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit --forceExit",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand --no-cache",
-    "test:docker": "docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit"
   },
   "keywords": [
     "legal",
@@ -49,21 +48,22 @@
     "lodash": "^4.17.21",
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
-    "multer": "^1.4.5-lts.1",
+    "multer": "^1.4.5-lts.2",
     "nodemailer": "^6.9.8",
     "sharp": "^0.33.2",
     "socket.io": "^4.6.1",
-    "socket.io-client": "^4.6.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
-    "uuid": "^8.3.2",
+    "uuid": "^11.1.0",
     "winston": "^3.11.0",
-    "winston-daily-rotate-file": "^4.7.1",
-    "xss-clean": "^0.1.4"
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
-    "eslint": "^8.56.0",
-    "faker": "^6.6.6",
+    "@babel/core": "^7.29.7",
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^15.0.0",
     "ioredis-mock": "^8.9.0",
     "jest": "^29.7.0",
     "jest-extended": "^4.0.0",

@@ -818,18 +818,6 @@
 
 ## 15. ملفات التشغيل والنشر
 
-### `Dockerfile`
-
-لبناء صورة Docker للمشروع
-
-### `docker-compose.yml`
-
-لتشغيل الخدمات معًا أثناء التطوير
-
-### `docker-compose.prod.yml`
-
-لتشغيل نسخة production
-
 ### `ecosystem.config.js`
 
 يستخدم غالبًا مع `PM2`

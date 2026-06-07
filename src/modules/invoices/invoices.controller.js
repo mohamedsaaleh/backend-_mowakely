@@ -81,18 +81,6 @@ class InvoiceController {
     }
   }
 
-  async markAsPaid(req, res, next) {
-    try {
-      const { method, ref } = req.body;
-      const invoice = await invoiceService.markAsPaid(req.params.id, { method, ref });
-      res.json({
-        success: true,
-        data: invoice
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
 }
 
 module.exports = new InvoiceController();
