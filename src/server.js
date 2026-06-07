@@ -7,11 +7,9 @@ const mongoose = require('mongoose');
 
 const server = http.createServer(app);
 
-const allowedOrigins = (process.env.CORS_ORIGIN || '*').split(',');
-
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: process.env.CORS_ORIGIN || '*',
     methods: ['GET', 'POST'],
     credentials: true
   },
@@ -22,50 +20,45 @@ const io = new Server(server, {
 require('./sockets/chat.socket')(io);
 require('./sockets/notification.socket')(io);
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 
 const startServer = async () => {
-  try {
-    await appReady;
+  await appReady;
 
-    server.listen(PORT, () => {
-      logger.info(`
+  server.listen(PORT, () => {
+    logger.info(`
 ==========================================
 🚀 Legal Services Marketplace API
 ==========================================
    Environment: ${config.nodeEnv}
    Port: ${PORT}
-   Health: /api/health
-   Docs: /api-docs
-   API: /api
+   Health: http://localhost:${PORT}/api/health
+   Docs: http://localhost:${PORT}/api-docs
+   API: http://localhost:${PORT}/api
 ==========================================
-      `);
-    });
-
-  } catch (error) {
-    logger.error("❌ Server failed to start:", error);
-    process.exit(1);
-  }
+    `);
+  });
 };
 
-const gracefulShutdown = (signal) => {
-  logger.info(`${signal} received. Shutting down...`);
+const gracefulShutdown = async (signal) => {
+  logger.info(`${signal} received. Starting graceful shutdown...`);
 
   server.close(async () => {
     logger.info('HTTP server closed');
 
     try {
       await mongoose.connection.close();
-      logger.info('MongoDB connection closed');
+      logger.info('Database connection closed');
     } catch (error) {
-      logger.error('Error closing MongoDB:', error);
+      logger.error('Error closing database:', error);
     }
 
+    logger.info('Graceful shutdown completed');
     process.exit(0);
   });
 
   setTimeout(() => {
-    logger.error('Forced shutdown (timeout)');
+    logger.error('Forced shutdown after timeout');
     process.exit(1);
   }, 10000);
 };
@@ -75,8 +68,8 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason) => {
-  logger.error('Unhandled Rejection:', reason);
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
