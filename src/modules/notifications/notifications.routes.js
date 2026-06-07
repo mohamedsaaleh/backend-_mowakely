@@ -24,7 +24,11 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
+ */
+
+/**
+ * @swagger
+ * /api/notifications:
  *   post:
  *     summary: Create a notification (Admin only)
  *     description: Create and send a notification to a specific user. Only admins can create notifications.
@@ -62,7 +66,10 @@
  *         $ref: '#/components/responses/ValidationError'
  *       404:
  *         $ref: '#/components/responses/NotFound'
- * 
+ */
+
+/**
+ * @swagger
  * /api/notifications/read-all:
  *   patch:
  *     summary: Mark all notifications as read
@@ -77,8 +84,11 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
- * /api/notifications/{id}:
+ */
+
+/**
+ * @swagger
+ * /api/notifications/{id}/read:
  *   patch:
  *     summary: Mark notification as read
  *     description: Marks a specific notification as read. Users can only modify their own notifications; admins can modify any notification.
@@ -100,7 +110,11 @@
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         $ref: '#/components/responses/NotFound'
- * 
+ */
+
+/**
+ * @swagger
+ * /api/notifications/{id}:
  *   delete:
  *     summary: Delete a notification
  *     description: Deletes a notification. Users can only delete their own notifications; admins can delete any notification.

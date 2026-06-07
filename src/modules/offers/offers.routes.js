@@ -40,7 +40,30 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- *
+ */
+
+/**
+ * @swagger
+ * /api/offers:
+ *   get:
+ *     summary: Get all offers (Admin only)
+ *     tags: [Offers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/page'
+ *       - $ref: '#/components/parameters/limit'
+ *     responses:
+ *       200:
+ *         description: Offers retrieved
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ */
+
+/**
+ * @swagger
  * /api/offers/case/{caseId}:
  *   get:
  *     summary: Get offers for a case
@@ -54,7 +77,10 @@
  *     responses:
  *       200:
  *         description: Offers retrieved
- *
+ */
+
+/**
+ * @swagger
  * /api/offers/my-offers:
  *   get:
  *     summary: Get my offers (Lawyer)
@@ -68,7 +94,10 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- *
+ */
+
+/**
+ * @swagger
  * /api/offers/{id}/accept:
  *   patch:
  *     summary: Accept an offer (Client)
@@ -88,7 +117,10 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- *
+ */
+
+/**
+ * @swagger
  * /api/offers/{id}/reject:
  *   patch:
  *     summary: Reject an offer (Client)
@@ -108,7 +140,10 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- *
+ */
+
+/**
+ * @swagger
  * /api/offers/{id}:
  *   delete:
  *     summary: Delete an offer (Lawyer or Admin)
@@ -139,9 +174,9 @@ const { authenticate } = require('../../middlewares/auth.middleware');
 const { authorize } = require('../../middlewares/role.middleware');
 
 router.post('/', authenticate, authorize('lawyer'), validate(createOfferSchema), offerController.create);
+router.get('/', authenticate, authorize('admin'), offerController.getAll);
 router.get('/my-offers', authenticate, authorize('lawyer'), offerController.getMyOffers);
 router.get('/case/:caseId', offerController.getByCase);
-router.get('/', authenticate, authorize('admin'), offerController.getAll);
 router.patch('/:id/accept', authenticate, authorize('client'), offerController.acceptOffer);
 router.patch('/:id/reject', authenticate, authorize('client'), offerController.rejectOffer);
 router.delete('/:id', authenticate, authorize('lawyer', 'admin'), offerController.delete);

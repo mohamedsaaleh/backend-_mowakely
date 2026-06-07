@@ -20,7 +20,10 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
+ */
+
+/**
+ * @swagger
  * /api/admin/users:
  *   get:
  *     summary: Get all users
@@ -38,7 +41,10 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
+ */
+
+/**
+ * @swagger
  * /api/admin/lawyers:
  *   get:
  *     summary: Get all lawyers
@@ -55,7 +61,10 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
+ */
+
+/**
+ * @swagger
  * /api/admin/lawyers/{id}/verify:
  *   patch:
  *     summary: Verify a lawyer
@@ -83,7 +92,10 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
+ */
+
+/**
+ * @swagger
  * /api/admin/users/{id}/ban:
  *   patch:
  *     summary: Ban/unban a user
@@ -114,6 +126,31 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ */
+
+/**
+ * @swagger
+ * /api/admin/invoices/{id}/force-pay:
+ *   patch:
+ *     summary: Force mark invoice as paid (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Invoice marked as paid
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
  */
 
 const express = require('express');

@@ -7,13 +7,6 @@
 
 /**
  * @swagger
- * tags:
- *   name: Reviews
- *   description: Reviews and ratings for lawyers
- */
-
-/**
- * @swagger
  * /api/reviews:
  *   post:
  *     summary: Create a review for a lawyer
@@ -51,7 +44,11 @@
  *         $ref: '#/components/responses/Forbidden'
  *       400:
  *         $ref: '#/components/responses/ValidationError'
- * 
+ */
+
+/**
+ * @swagger
+ * /api/reviews:
  *   get:
  *     summary: Get all reviews (Admin only)
  *     description: Retrieve all reviews in the system. Admin only access for moderation.
@@ -68,7 +65,10 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
+ */
+
+/**
+ * @swagger
  * /api/reviews/{id}:
  *   delete:
  *     summary: Delete a review (Admin only)
@@ -91,7 +91,10 @@
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         $ref: '#/components/responses/NotFound'
- * 
+ */
+
+/**
+ * @swagger
  * /api/reviews/lawyer/{lawyerId}:
  *   get:
  *     summary: Get reviews for a specific lawyer
