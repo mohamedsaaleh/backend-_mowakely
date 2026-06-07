@@ -27,6 +27,18 @@ class OfferController {
     }
   }
 
+  async getAll(req, res, next) {
+    try {
+      const result = await offerService.getAll(req.query);
+      res.json({
+        success: true,
+        ...result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getMyOffers(req, res, next) {
     try {
       const result = await offerService.getMyOffers(req);
@@ -65,7 +77,7 @@ class OfferController {
 
   async delete(req, res, next) {
     try {
-      const result = await offerService.delete(req.params.id, req.user._id);
+      const result = await offerService.delete(req.params.id, req.user._id, req.user.role);
       res.json({
         success: true,
         ...result

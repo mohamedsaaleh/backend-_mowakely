@@ -98,6 +98,34 @@ class OfferService {
     };
   }
 
+  async getAll(query = {}) {
+    const { page = 1, limit = 20, status } = query;
+
+    const filter = {};
+    if (status) filter.status = status;
+
+    const offers = await Offer.find(filter)
+      .populate('lawyer', 'rate specialization years_of_experience office_address availability_status')
+      .populate('lawyer.user', 'full_name email profile_photo')
+      .populate('case', 'title status budget')
+      .populate('case.category', 'name')
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .sort({ applied_at: -1 });
+
+    const total = await Offer.countDocuments(filter);
+
+    return {
+      offers,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
+  }
+
   async getMyOffers(req) {
     const lawyer = await Lawyer.findOne({ user: req.user._id });
     if (!lawyer) {
@@ -178,20 +206,22 @@ class OfferService {
     return offer;
   }
 
-  async delete(offerId, userId) {
-    const lawyer = await Lawyer.findOne({ user: userId });
+  async delete(offerId, userId, role) {
     const offer = await Offer.findById(offerId);
 
     if (!offer) {
       throw new AppError('Offer not found', 404);
     }
 
-    if (!lawyer || offer.lawyer.toString() !== lawyer._id.toString()) {
-      throw new AppError('You can only delete your own offers', 403);
-    }
+    if (role !== 'admin') {
+      const lawyer = await Lawyer.findOne({ user: userId });
+      if (!lawyer || offer.lawyer.toString() !== lawyer._id.toString()) {
+        throw new AppError('You can only delete your own offers', 403);
+      }
 
-    if (offer.status !== 'pending') {
-      throw new AppError('Cannot delete this offer', 400);
+      if (offer.status !== 'pending') {
+        throw new AppError('Cannot delete this offer', 400);
+      }
     }
 
     await Offer.findByIdAndDelete(offerId);

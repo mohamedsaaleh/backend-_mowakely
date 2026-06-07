@@ -120,4 +120,114 @@ router.patch('/me', authenticate, authorize('lawyer'), lawyerController.updateMy
  */
 router.get('/:id', lawyerController.getById);
 
+/**
+ * @swagger
+ * /lawyers:
+ *   post:
+ *     summary: Create a new lawyer
+ *     description: Create a new lawyer profile (admin only)
+ *     tags: [Lawyers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               specializations:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               city:
+ *                 type: string
+ *               bio:
+ *                 type: string
+ *               hourlyRate:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Lawyer created successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ */
+router.post('/', authenticate, authorize('admin'), lawyerController.create);
+
+/**
+ * @swagger
+ * /lawyers/{id}:
+ *   put:
+ *     summary: Update lawyer by ID
+ *     description: Update a lawyer's profile by ID (admin or lawyer only)
+ *     tags: [Lawyers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               specializations:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               city:
+ *                 type: string
+ *               bio:
+ *                 type: string
+ *               hourlyRate:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Lawyer updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not authorized to update this lawyer
+ *       404:
+ *         description: Lawyer not found
+ */
+router.put('/:id', authenticate, authorize('admin', 'lawyer'), lawyerController.updateById);
+
+/**
+ * @swagger
+ * /lawyers/{id}:
+ *   delete:
+ *     summary: Delete lawyer by ID
+ *     description: Delete a lawyer's profile by ID (admin only)
+ *     tags: [Lawyers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lawyer deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Lawyer not found
+ */
+router.delete('/:id', authenticate, authorize('admin'), lawyerController.deleteById);
+
 module.exports = router;

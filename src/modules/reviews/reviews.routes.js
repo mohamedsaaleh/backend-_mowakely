@@ -7,6 +7,13 @@
 
 /**
  * @swagger
+ * tags:
+ *   name: Reviews
+ *   description: Reviews and ratings for lawyers
+ */
+
+/**
+ * @swagger
  * /api/reviews:
  *   post:
  *     summary: Create a review for a lawyer
@@ -45,6 +52,46 @@
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  * 
+ *   get:
+ *     summary: Get all reviews (Admin only)
+ *     description: Retrieve all reviews in the system. Admin only access for moderation.
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/page'
+ *       - $ref: '#/components/parameters/limit'
+ *     responses:
+ *       200:
+ *         description: Reviews retrieved successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ * 
+ * /api/reviews/{id}:
+ *   delete:
+ *     summary: Delete a review (Admin only)
+ *     description: Delete a review by ID. Admin only for moderation.
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Review deleted successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ * 
  * /api/reviews/lawyer/{lawyerId}:
  *   get:
  *     summary: Get reviews for a specific lawyer
@@ -60,6 +107,8 @@
  *     responses:
  *       200:
  *         description: Reviews retrieved successfully
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
  */
 
 const express = require('express');
@@ -78,6 +127,8 @@ const createReviewSchema = Joi.object({
 });
 
 router.post('/', authenticate, authorize('client'), validate(createReviewSchema), reviewController.create);
+router.get('/', authenticate, authorize('admin'), reviewController.getAll);
 router.get('/lawyer/:lawyerId', reviewController.getByLawyer);
+router.delete('/:id', authenticate, authorize('admin'), reviewController.delete);
 
 module.exports = router;

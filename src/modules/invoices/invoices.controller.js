@@ -15,6 +15,18 @@ class InvoiceController {
     }
   }
 
+  async getAll(req, res, next) {
+    try {
+      const result = await invoiceService.getAll(req.query);
+      res.json({
+        success: true,
+        ...result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getById(req, res, next) {
     try {
       const invoice = await invoiceService.getById(

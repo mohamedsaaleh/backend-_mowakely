@@ -17,7 +17,7 @@ class CaseController {
 
   async getAll(req, res, next) {
     try {
-      const result = await caseService.getAll(req.query);
+      const result = await caseService.getAll(req.query, req.user);
       res.json({
         success: true,
         ...result
@@ -29,7 +29,7 @@ class CaseController {
 
   async getById(req, res, next) {
     try {
-      const legalCase = await caseService.getById(req.params.id);
+      const legalCase = await caseService.getById(req.params.id, req.user);
       res.json({
         success: true,
         data: legalCase

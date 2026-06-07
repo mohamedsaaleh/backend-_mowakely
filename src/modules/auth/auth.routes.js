@@ -4,6 +4,7 @@ const authController = require('./auth.controller');
 const { validate } = require('../../middlewares/validate.middleware');
 const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } = require('./auth.validation');
 const { authenticate } = require('../../middlewares/auth.middleware');
+const { authorize } = require('../../middlewares/role.middleware');
 
 /**
  * @swagger

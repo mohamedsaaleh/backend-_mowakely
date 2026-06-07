@@ -6,6 +6,46 @@ const { Notification } = require('../notifications/notifications.model');
 const { AppError } = require('../../middlewares/error.middleware');
 
 class ReviewService {
+  async getAll(query = {}) {
+    const { page = 1, limit = 20 } = query;
+
+    const reviews = await Review.find({})
+      .populate('reviewer', 'user')
+      .populate('reviewer.user', 'full_name profile_photo')
+      .populate('lawyer_reviewed', 'rate')
+      .populate('lawyer_reviewed.user', 'full_name')
+      .populate('case', 'title')
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .sort({ created_at: -1 });
+
+    const total = await Review.countDocuments({});
+
+    return {
+      reviews,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
+  }
+
+  async delete(reviewId) {
+    const review = await Review.findByIdAndDelete(reviewId);
+    if (!review) {
+      throw new AppError('Review not found', 404);
+    }
+
+    const lawyer = await Lawyer.findById(review.lawyer_reviewed);
+    if (lawyer) {
+      await Lawyer.findByIdAndUpdate(lawyer._id, { $inc: { total_reviews: -1 } });
+    }
+
+    return { message: 'Review deleted successfully' };
+  }
+
   async create(reviewData, userId) {
     const client = await Client.findOne({ user: userId });
     if (!client) {
@@ -35,11 +75,14 @@ class ReviewService {
     }
 
     const review = await Review.create({
-      ...reviewData,
-      reviewer: client._id
+      reviewer: client._id,
+      lawyer_reviewed: reviewData.reviewedLawyer || reviewData.lawyer_reviewed,
+      case: reviewData.case,
+      rating: reviewData.rating,
+      comment: reviewData.comment
     });
 
-    const lawyer = await Lawyer.findById(reviewData.lawyer_reviewed);
+    const lawyer = await Lawyer.findById(reviewData.reviewedLawyer || reviewData.lawyer_reviewed);
     if (!lawyer) {
       throw new AppError('Lawyer not found', 404);
     }

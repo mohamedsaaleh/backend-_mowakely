@@ -119,6 +119,7 @@ const { authenticate } = require('../../middlewares/auth.middleware');
 const { authorize } = require('../../middlewares/role.middleware');
 
 router.post('/', authenticate, authorize('admin'), invoiceController.create);
+router.get('/', authenticate, authorize('admin'), invoiceController.getAll);
 router.get('/my-invoices', authenticate, authorize('client'), invoiceController.getMyInvoices);
 router.get('/lawyer-invoices', authenticate, authorize('lawyer'), invoiceController.getLawyerInvoices);
 router.get('/:id', authenticate, invoiceController.getById);

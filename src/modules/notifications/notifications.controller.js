@@ -3,7 +3,7 @@ const notificationService = require('./notifications.service');
 class NotificationController {
   async getAll(req, res, next) {
     try {
-      const result = await notificationService.getAll(req.user._id, req.query);
+      const result = await notificationService.getAll(req);
       res.json({
         success: true,
         ...result
@@ -13,9 +13,25 @@ class NotificationController {
     }
   }
 
+  async create(req, res, next) {
+    try {
+      const notification = await notificationService.createNotification(
+        req.body.recipientId,
+        req.body.title,
+        req.body.message
+      );
+      res.status(201).json({
+        success: true,
+        data: notification
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async markAsRead(req, res, next) {
     try {
-      const notification = await notificationService.markAsRead(req.params.id, req.user._id);
+      const notification = await notificationService.markAsRead(req, req.params.id);
       res.json({
         success: true,
         data: notification
@@ -27,7 +43,7 @@ class NotificationController {
 
   async markAllAsRead(req, res, next) {
     try {
-      const result = await notificationService.markAllAsRead(req.user._id);
+      const result = await notificationService.markAllAsRead(req);
       res.json({
         success: true,
         ...result
@@ -39,7 +55,7 @@ class NotificationController {
 
   async delete(req, res, next) {
     try {
-      const result = await notificationService.deleteNotification(req.params.id, req.user._id);
+      const result = await notificationService.deleteNotification(req, req.params.id);
       res.json({
         success: true,
         ...result

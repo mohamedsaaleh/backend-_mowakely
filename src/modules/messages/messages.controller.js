@@ -5,7 +5,8 @@ const config = require('../../config/env');
 class MessageController {
   async getByCase(req, res, next) {
     try {
-      const result = await messageService.getByCase(req.params.caseId, req.user._id, req.query);
+      const caseId = req.query.caseId || req.params.caseId;
+      const result = await messageService.getByCase(caseId, req.user);
       res.json({
         success: true,
         ...result
@@ -17,10 +18,11 @@ class MessageController {
 
   async create(req, res, next) {
     try {
+      const caseId = req.body.caseId || req.params.caseId;
       const message = await messageService.createMessage(
-        req.params.caseId,
+        caseId,
         { message: req.body.message, attachments: req.body.attachments || [] },
-        req.user._id
+        req.user
       );
       res.status(201).json({
         success: true,
@@ -33,7 +35,8 @@ class MessageController {
 
   async getUnreadCount(req, res, next) {
     try {
-      const count = await messageService.getUnreadCount(req.params.caseId, req.user._id);
+      const caseId = req.query.caseId || req.params.caseId;
+      const count = await messageService.getUnreadCount(caseId, req.user);
       res.json({
         success: true,
         data: { unreadCount: count }

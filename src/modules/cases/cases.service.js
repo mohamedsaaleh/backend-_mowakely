@@ -22,7 +22,7 @@ class CaseService {
       .populate('client.user', 'full_name email profile_photo');
   }
 
-  async getAll(query = {}) {
+  async getAll(query = {}, user = null) {
     const {
       page = 1,
       limit = 20,
@@ -35,6 +35,27 @@ class CaseService {
     } = query;
 
     const filter = {};
+
+    if (user) {
+      if (user.role === 'admin') {
+        // Admin can see all cases - no additional filter
+      } else if (user.role === 'lawyer') {
+        // Lawyer can only see open cases without a lawyer assigned
+        filter.status = 'open';
+        filter.lawyer = null;
+      } else {
+        // Other roles cannot access this endpoint - return empty
+        return {
+          cases: [],
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: 0,
+            pages: 0
+          }
+        };
+      }
+    }
 
     if (status) filter.status = status;
     if (category) filter.category = category;
@@ -67,17 +88,29 @@ class CaseService {
     };
   }
 
-  async getById(id) {
+async getById(id, user = null) {
     const legalCase = await Case.findById(id)
       .populate('category', 'name')
       .populate('client', 'user')
-      .populate('client.user', 'full_name email profile_photo phone')
+      .populate('client.user', 'full_name email profile_photo phone city bio address')
       .populate('lawyer', 'rate specialization years_of_experience office_address availability_status')
       .populate('lawyer.user', 'full_name email profile_photo')
       .populate('accepted_offer_id');
 
     if (!legalCase) {
       throw new AppError('Case not found', 404);
+    }
+
+    if (user && user.role !== 'admin') {
+      const client = await Client.findOne({ user: user._id });
+      const lawyer = await Lawyer.findOne({ user: user._id });
+
+      const hasAccess = (client && legalCase.client.toString() === client._id.toString()) ||
+        (lawyer && legalCase.lawyer && legalCase.lawyer.toString() === lawyer._id.toString());
+
+      if (!hasAccess) {
+        throw new AppError('You do not have access to this case', 403);
+      }
     }
 
     return legalCase;
@@ -141,7 +174,7 @@ class CaseService {
       throw new AppError('Case not found', 404);
     }
 
-    if (role === 'client') {
+    if (role !== 'admin') {
       const client = await Client.findOne({ user: userId });
       if (legalCase.client.toString() !== client._id.toString()) {
         throw new AppError('You can only update your own cases', 403);
@@ -174,7 +207,7 @@ class CaseService {
       throw new AppError('Case not found', 404);
     }
 
-    if (role === 'client') {
+    if (role !== 'admin') {
       const client = await Client.findOne({ user: userId });
       if (legalCase.client.toString() !== client._id.toString()) {
         throw new AppError('You can only delete your own cases', 403);

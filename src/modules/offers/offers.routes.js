@@ -140,8 +140,9 @@ const { authorize } = require('../../middlewares/role.middleware');
 router.post('/', authenticate, authorize('lawyer'), validate(createOfferSchema), offerController.create);
 router.get('/my-offers', authenticate, authorize('lawyer'), offerController.getMyOffers);
 router.get('/case/:caseId', offerController.getByCase);
+router.get('/', authenticate, authorize('admin'), offerController.getAll);
 router.patch('/:id/accept', authenticate, authorize('client'), offerController.acceptOffer);
 router.patch('/:id/reject', authenticate, authorize('client'), offerController.rejectOffer);
-router.delete('/:id', authenticate, authorize('lawyer'), offerController.delete);
+router.delete('/:id', authenticate, authorize('lawyer', 'admin'), offerController.delete);
 
 module.exports = router;

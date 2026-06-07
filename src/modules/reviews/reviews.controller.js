@@ -13,9 +13,33 @@ class ReviewController {
     }
   }
 
+  async getAll(req, res, next) {
+    try {
+      const result = await reviewService.getAll(req.query);
+      res.json({
+        success: true,
+        ...result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getByLawyer(req, res, next) {
     try {
       const result = await reviewService.getByLawyer(req.params.lawyerId, req.query);
+      res.json({
+        success: true,
+        ...result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async delete(req, res, next) {
+    try {
+      const result = await reviewService.delete(req.params.id);
       res.json({
         success: true,
         ...result

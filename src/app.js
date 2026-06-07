@@ -123,7 +123,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/lawyers', lawyerRoutes);
 app.use('/api/clients', clientRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api//admin', adminRoutes);
 app.use('/api/payouts', payoutRoutes);
 app.use('/api/users', userRoutes);
 

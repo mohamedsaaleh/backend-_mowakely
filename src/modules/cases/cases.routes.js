@@ -62,8 +62,10 @@ router.post('/', authenticate, authorize('client'), validate(createCaseSchema), 
  * /cases:
  *   get:
  *     summary: Get all cases
- *     description: Retrieve all cases with optional filtering, pagination, and sorting
+ *     description: Retrieve all cases with optional filtering, pagination, and sorting. Admin can view all cases; lawyers can view open unassigned cases.
  *     tags: [Cases]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -96,11 +98,9 @@ router.post('/', authenticate, authorize('client'), validate(createCaseSchema), 
  *     responses:
  *       200:
  *         description: Cases retrieved successfully
- */
-router.get('/', caseController.getAll);
-
-/**
- * @swagger
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ * 
  * /cases/my-cases:
  *   get:
  *     summary: Get my cases
@@ -114,6 +114,7 @@ router.get('/', caseController.getAll);
  *       401:
  *         description: Unauthorized
  */
+router.get('/', authenticate, authorize('admin', 'lawyer'), caseController.getAll);
 router.get('/my-cases', authenticate, authorize('client'), caseController.getMyCases);
 
 /**
@@ -138,8 +139,10 @@ router.get('/lawyer-cases', authenticate, authorize('lawyer'), caseController.ge
  * /cases/{id}:
  *   get:
  *     summary: Get case by ID
- *     description: Retrieve a specific case by its ID
+ *     description: Retrieve a specific case by its ID. Admins can view any case; regular users can only view cases they are involved in.
  *     tags: [Cases]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -149,10 +152,14 @@ router.get('/lawyer-cases', authenticate, authorize('lawyer'), caseController.ge
  *     responses:
  *       200:
  *         description: Case retrieved
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
- *         description: Case not found
+ *         $ref: '#/components/responses/NotFound'
  */
-router.get('/:id', caseController.getById);
+router.get('/:id', authenticate, caseController.getById);
 
 /**
  * @swagger
@@ -196,7 +203,7 @@ router.patch('/:id', authenticate, validate(updateCaseSchema), caseController.up
  * /cases/{id}:
  *   delete:
  *     summary: Delete case
- *     description: Delete a case (client only)
+ *     description: Delete a case (client or admin). Admins can delete any case.
  *     tags: [Cases]
  *     security:
  *       - bearerAuth: []
@@ -207,12 +214,16 @@ router.patch('/:id', authenticate, validate(updateCaseSchema), caseController.up
  *         schema:
  *           type: string
  *     responses:
- *       204:
- *         description: Case deleted
+ *       200:
+ *         description: Case deleted successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
- *         description: Case not found
+ *         $ref: '#/components/responses/NotFound'
  */
-router.delete('/:id', authenticate, authorize('client'), caseController.delete);
+router.delete('/:id', authenticate, authorize('client', 'admin'), caseController.delete);
 
 /**
  * @swagger
