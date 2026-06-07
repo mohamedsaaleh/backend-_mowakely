@@ -22,14 +22,15 @@
  *             required:
  *               - case
  *               - price
- *               - description
+ *               - message
  *             properties:
  *               case:
  *                 type: string
  *               price:
  *                 type: number
- *               description:
+ *               message:
  *                 type: string
+ *                 maxLength: 1000
  *               estimatedDuration:
  *                 type: string
  *     responses:
@@ -39,21 +40,7 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
- * /api/offers/my-offers:
- *   get:
- *     summary: Get my offers (Lawyer)
- *     tags: [Offers]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Offers retrieved
- *       401:
- *         $ref: '#/components/responses/Unauthorized'
- *       403:
- *         $ref: '#/components/responses/Forbidden'
- * 
+ *
  * /api/offers/case/{caseId}:
  *   get:
  *     summary: Get offers for a case
@@ -67,7 +54,21 @@
  *     responses:
  *       200:
  *         description: Offers retrieved
- * 
+ *
+ * /api/offers/my-offers:
+ *   get:
+ *     summary: Get my offers (Lawyer)
+ *     tags: [Offers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Offers retrieved
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ *
  * /api/offers/{id}/accept:
  *   patch:
  *     summary: Accept an offer (Client)
@@ -87,7 +88,7 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
+ *
  * /api/offers/{id}/reject:
  *   patch:
  *     summary: Reject an offer (Client)
@@ -107,10 +108,10 @@
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- * 
+ *
  * /api/offers/{id}:
  *   delete:
- *     summary: Delete an offer (Lawyer)
+ *     summary: Delete an offer (Lawyer or Admin)
  *     tags: [Offers]
  *     security:
  *       - bearerAuth: []
