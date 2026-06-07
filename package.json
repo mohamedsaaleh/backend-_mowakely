@@ -19,7 +19,7 @@
     "test:e2e": "jest tests/e2e --coverage",
     "test:sockets": "jest tests/sockets --coverage",
     "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit --forceExit",
-    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand --no-cache",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand --no-cache"
   },
   "keywords": [
     "legal",
