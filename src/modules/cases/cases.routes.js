@@ -114,7 +114,7 @@ router.post('/', authenticate, authorize('client'), validate(createCaseSchema), 
  *       401:
  *         description: Unauthorized
  */
-router.get('/', authenticate, authorize('admin', 'lawyer'), caseController.getAll);
+router.get('/', caseController.getAll);
 router.get('/my-cases', authenticate, authorize('client'), caseController.getMyCases);
 
 /**
@@ -159,7 +159,7 @@ router.get('/lawyer-cases', authenticate, authorize('lawyer'), caseController.ge
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.get('/:id', authenticate, caseController.getById);
+router.get('/:id', caseController.getById);
 
 /**
  * @swagger

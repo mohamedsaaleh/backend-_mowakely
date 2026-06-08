@@ -97,7 +97,11 @@ const authLimiter = rateLimit({
   legacyHeaders: false
 });
 
-app.use('/api', apiLimiter);
+if (config.nodeEnv !== 'test') {
+  app.use('/api', apiLimiter);
+} else {
+  app.use('/api', (req, res, next) => next());
+}
 
 let isDbConnected = false;
 let dbConnectionTime = null;
