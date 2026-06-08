@@ -104,6 +104,67 @@ class LawyerService {
     }
     await cache.invalidatePrefix('lawyers:list');
   }
+
+  async create(userId) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    user.role = 'lawyer';
+    await user.save();
+
+    const lawyer = await Lawyer.create({ user: userId });
+    
+    return lawyer;
+  }
+
+  async updateById(lawyerId, updateData) {
+    const lawyer = await Lawyer.findById(lawyerId);
+    if (!lawyer) {
+      throw new AppError('Lawyer not found', 404);
+    }
+
+    const { specialization, years_of_experience, office_address, availability_status, rate } = updateData;
+    
+    if (specialization !== undefined) lawyer.specialization = specialization;
+    if (years_of_experience !== undefined) lawyer.years_of_experience = years_of_experience;
+    if (office_address !== undefined) lawyer.office_address = office_address;
+    if (availability_status !== undefined) lawyer.availability_status = availability_status;
+    if (rate !== undefined) lawyer.rate = rate;
+
+    await lawyer.save();
+
+    const userUpdateFields = {};
+    if (updateData.full_name) userUpdateFields.full_name = updateData.full_name;
+    if (updateData.city) userUpdateFields.city = updateData.city;
+    if (updateData.address) userUpdateFields.address = updateData.address;
+    if (updateData.bio) userUpdateFields.bio = updateData.bio;
+    if (updateData.profile_photo) userUpdateFields.profile_photo = updateData.profile_photo;
+
+    if (Object.keys(userUpdateFields).length > 0) {
+      await User.findByIdAndUpdate(lawyer.user, userUpdateFields);
+    }
+
+    const updated = await Lawyer.findById(lawyer._id)
+      .populate('user', 'full_name email profile_photo phone city bio address');
+
+    await this.invalidateCache(lawyer._id, lawyer.user);
+    return updated;
+  }
+
+  async deleteById(lawyerId) {
+    const lawyer = await Lawyer.findById(lawyerId);
+    if (!lawyer) {
+      throw new AppError('Lawyer not found', 404);
+    }
+
+    await Lawyer.findByIdAndDelete(lawyerId);
+    
+    await this.invalidateCache(lawyerId, lawyer.user);
+    
+    return { message: 'Lawyer deleted successfully' };
+  }
 }
 
 module.exports = new LawyerService();
