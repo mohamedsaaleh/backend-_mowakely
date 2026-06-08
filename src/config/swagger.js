@@ -25,9 +25,10 @@ The API uses JWT Bearer token authentication. Include the token in the Authoriza
 - Reviews and ratings
 - Notifications system
 - Invoice and payout management
-- Admin dashboard with analytics
-- Lawyer and Client profiles
-- Category-based case organization
+  - Admin dashboard with analytics
+  - Lawyer and Client profiles
+  - Category-based case organization
+  - Superadmin system-level operations
 
 ### Pagination
 All list endpoints support pagination with query parameters:
@@ -299,6 +300,152 @@ servers: [
             method: { type: 'string', example: 'bank_transfer' },
             createdAt: { type: 'string', format: 'date-time' }
           }
+        },
+        CreateAdminRequest: {
+          type: 'object',
+          required: ['full_name', 'email', 'password', 'phone'],
+          properties: {
+            full_name: { type: 'string', minLength: 2, maxLength: 100, example: 'New Admin' },
+            email: { type: 'string', format: 'email', example: 'newadmin@example.com' },
+            password: { type: 'string', minLength: 6, maxLength: 100, example: 'Admin@123456' },
+            phone: { type: 'string', example: '+1-555-0199' },
+            city: { type: 'string', example: 'New York' },
+            address: { type: 'string', example: '123 Admin St' },
+            bio: { type: 'string', example: 'System administrator' },
+            profile_photo: { type: 'string', nullable: true, example: 'https://example.com/photo.jpg' }
+          }
+        },
+        CreateLawyerRequest: {
+          type: 'object',
+          required: ['full_name', 'email', 'password', 'phone', 'specialization'],
+          properties: {
+            full_name: { type: 'string', minLength: 2, maxLength: 100, example: 'John Doe' },
+            email: { type: 'string', format: 'email', example: 'lawyer@example.com' },
+            password: { type: 'string', minLength: 6, maxLength: 100, example: 'Lawyer@123' },
+            phone: { type: 'string', example: '+1-555-0100' },
+            role: { type: 'string', enum: ['lawyer'], example: 'lawyer' },
+            specialization: { type: 'string', example: 'Family Law' },
+            years_of_experience: { type: 'integer', minimum: 0, example: 10 },
+            office_address: { type: 'string', example: '123 Legal St, New York' },
+            city: { type: 'string', example: 'New York' },
+            address: { type: 'string', example: '123 Legal St' },
+            bio: { type: 'string', example: 'Experienced family law attorney' },
+            profile_photo: { type: 'string', nullable: true }
+          }
+        },
+        CreateClientRequest: {
+          type: 'object',
+          required: ['full_name', 'email', 'password', 'phone'],
+          properties: {
+            full_name: { type: 'string', minLength: 2, maxLength: 100, example: 'Jane Smith' },
+            email: { type: 'string', format: 'email', example: 'client@example.com' },
+            password: { type: 'string', minLength: 6, maxLength: 100, example: 'Client@123' },
+            phone: { type: 'string', example: '+1-555-0200' },
+            role: { type: 'string', enum: ['client'], example: 'client' },
+            city: { type: 'string', example: 'Los Angeles' },
+            address: { type: 'string', example: '456 Client Ave' },
+            bio: { type: 'string', example: 'Looking for legal assistance' },
+            profile_photo: { type: 'string', nullable: true }
+          }
+        },
+        CreateCaseRequest: {
+          type: 'object',
+          required: ['title', 'description', 'category', 'budget'],
+          properties: {
+            title: { type: 'string', minLength: 3, maxLength: 200, example: 'Family Law Case' },
+            description: { type: 'string', minLength: 10, maxLength: 5000, example: 'Divorce proceedings with child custody...' },
+            category: { type: 'string', example: 'Family Law' },
+            budget: { type: 'number', minimum: 0, example: 5000 },
+            city: { type: 'string', example: 'New York' },
+            priority: { type: 'string', enum: ['low', 'medium', 'high', 'urgent'], example: 'medium' }
+          }
+        },
+        UpdateUserRequest: {
+          type: 'object',
+          properties: {
+            full_name: { type: 'string', minLength: 2, maxLength: 100, example: 'John Doe Updated' },
+            phone: { type: 'string', example: '+1-555-0101' },
+            city: { type: 'string', example: 'Boston' },
+            address: { type: 'string', example: '789 New St' },
+            bio: { type: 'string', example: 'Updated bio information' },
+            profile_photo: { type: 'string', nullable: true }
+          }
+        },
+        UpdateLawyerRequest: {
+          type: 'object',
+          properties: {
+            specialization: { type: 'string', example: 'Corporate Law' },
+            years_of_experience: { type: 'integer', minimum: 0, example: 15 },
+            office_address: { type: 'string', example: '456 Corporate Blvd' },
+            availability_status: { type: 'boolean', example: true },
+            rate: { type: 'number', example: 200 }
+          }
+        },
+        UpdateClientRequest: {
+          type: 'object',
+          properties: {
+            city: { type: 'string', example: 'Chicago' },
+            address: { type: 'string', example: '321 Client Lane' },
+            bio: { type: 'string', example: 'Updated client information' }
+          }
+        },
+        UpdateCaseRequest: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', minLength: 3, maxLength: 200, example: 'Updated Case Title' },
+            description: { type: 'string', minLength: 10, maxLength: 5000, example: 'Updated description...' },
+            status: { type: 'string', enum: ['open', 'in_progress', 'pending_payment', 'completed', 'cancelled', 'disputed'] },
+            budget: { type: 'number', minimum: 0, example: 7500 },
+            city: { type: 'string', example: 'Miami' },
+            priority: { type: 'string', enum: ['low', 'medium', 'high', 'urgent'] }
+          }
+        },
+        BanUserRequest: {
+          type: 'object',
+          required: ['banned'],
+          properties: {
+            banned: { type: 'boolean', example: true }
+          }
+        },
+        ChangeRoleRequest: {
+          type: 'object',
+          required: ['newRole'],
+          properties: {
+            newRole: { type: 'string', enum: ['client', 'lawyer', 'admin'], example: 'admin' }
+          }
+        },
+        DashboardStatsResponse: {
+          type: 'object',
+          properties: {
+            users: {
+              type: 'object',
+              properties: {
+                total: { type: 'integer', example: 150 },
+                lawyers: { type: 'integer', example: 50 },
+                clients: { type: 'integer', example: 100 }
+              }
+            },
+            cases: {
+              type: 'object',
+              properties: {
+                total: { type: 'integer', example: 300 },
+                open: { type: 'integer', example: 120 },
+                completed: { type: 'integer', example: 180 }
+              }
+            },
+            revenue: {
+              type: 'object',
+              properties: {
+                total: { type: 'number', example: 150000 }
+              }
+            },
+            payouts: {
+              type: 'object',
+              properties: {
+                pending: { type: 'number', example: 25000 }
+              }
+            }
+          }
         }
       },
       responses: {
@@ -419,7 +566,9 @@ servers: [
       { name: 'Reviews', description: 'Reviews and ratings for lawyers' },
       { name: 'Invoices', description: 'Invoice generation and payment tracking' },
       { name: 'Payouts', description: 'Lawyer payout and withdrawal management' },
-      { name: 'Admin', description: 'Admin dashboard, user management, analytics' }
+      { name: 'Admin', description: 'Admin dashboard, user management, analytics' },
+      { name: 'Superadmin', description: 'Superadmin system-level operations - highest privilege access' },
+      { name: 'Payments', description: 'Payment processing and Paymob integration' }
     ]
   },
   apis: ['./src/modules/**/*.routes.js']
