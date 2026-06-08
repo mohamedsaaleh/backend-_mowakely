@@ -51,10 +51,7 @@ All list endpoints support pagination with query parameters:
       }
     },
 servers: [
-  {
-    url: 'http://localhost:3000/api',
-    description: 'Development server'
-  },
+ 
   {
     url: `${process.env.BASE_URL || 'https://chic-encouragement-production-0618.up.railway.app'}/api`,
     description: 'Production server'
