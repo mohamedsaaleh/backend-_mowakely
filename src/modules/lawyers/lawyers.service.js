@@ -97,6 +97,36 @@ class LawyerService {
     return lawyer;
   }
 
+  async create(data) {
+    const lawyer = await Lawyer.create(data);
+    await cache.invalidatePrefix('lawyers:list');
+    return lawyer;
+  }
+
+  async updateById(lawyerId, updateData) {
+    const lawyer = await Lawyer.findByIdAndUpdate(lawyerId, updateData, {
+      new: true,
+      runValidators: true
+    }).populate('user', 'full_name email profile_photo phone city bio address');
+
+    if (!lawyer) {
+      throw new AppError('Lawyer not found', 404);
+    }
+
+    await this.invalidateCache(lawyerId, lawyer.user?._id);
+    return lawyer;
+  }
+
+  async deleteById(lawyerId) {
+    const lawyer = await Lawyer.findByIdAndDelete(lawyerId);
+
+    if (!lawyer) {
+      throw new AppError('Lawyer not found', 404);
+    }
+
+    await this.invalidateCache(lawyerId, lawyer.user);
+  }
+
   async invalidateCache(lawyerId, userId) {
     await cache.del(`lawyer:${lawyerId}`);
     if (userId) {

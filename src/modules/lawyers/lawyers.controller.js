@@ -36,6 +36,33 @@ class LawyerController {
       next(error);
     }
   }
+
+  async create(req, res, next) {
+    try {
+      const lawyer = await lawyerService.create(req.body);
+      res.status(201).json({ success: true, data: lawyer });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateById(req, res, next) {
+    try {
+      const lawyer = await lawyerService.updateById(req.params.id, req.body);
+      res.json({ success: true, data: lawyer });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteById(req, res, next) {
+    try {
+      await lawyerService.deleteById(req.params.id);
+      res.json({ success: true, message: 'Lawyer deleted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new LawyerController();
