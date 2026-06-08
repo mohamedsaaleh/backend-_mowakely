@@ -67,8 +67,9 @@ describe('Client E2E Journey Tests', () => {
           expect([200, 404, 401]).toContain(myCasesResponse.status);
           
           if (myCasesResponse.status === 200) {
-            const data = myCasesResponse.body.data;
-            expect(Array.isArray(data?.items) || Array.isArray(data)).toBe(true);
+            expect(myCasesResponse.body.success).toBe(true);
+            expect(Array.isArray(myCasesResponse.body.cases)).toBe(true);
+            expect(myCasesResponse.body.pagination).toBeDefined();
           }
         }
       }

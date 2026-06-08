@@ -108,15 +108,24 @@ describe('Admin E2E Journey Tests', () => {
       const viewResponse = await request(app)
         .get(`/api/admin/users/${client.user._id}`)
         .set('Authorization', `Bearer ${adminToken}`);
-
-      expect([200, 404]).toContain(viewResponse.status);
+      expect(viewResponse.status).toBe(200);
 
       const updateResponse = await request(app)
         .put(`/api/admin/users/${client.user._id}`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ isActive: false });
+        .send({ is_banned: true });
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.data.is_banned).toBe(true);
 
-      expect([200, 404]).toContain(updateResponse.status);
+      const deleteResponse = await request(app)
+        .delete(`/api/admin/users/${client.user._id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(deleteResponse.status).toBe(200);
+
+      const viewAfterDeleteResponse = await request(app)
+        .get(`/api/admin/users/${client.user._id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(viewAfterDeleteResponse.status).toBe(404);
     });
   });
 

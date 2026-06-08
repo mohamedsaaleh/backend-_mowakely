@@ -1,3 +1,9 @@
+jest.mock('bcryptjs', () => ({
+  genSalt: (rounds) => Promise.resolve(`salt_${rounds}`),
+  hash: (password, salt) => Promise.resolve(`hashed_${password}_${salt}`),
+  compare: (password, hash) => Promise.resolve(true)
+}));
+
 const { authenticate, optionalAuth } = require('../../../src/middlewares/auth.middleware');
 const jwt = require('jsonwebtoken');
 const { User } = require('../../../src/modules/users/users.model');
