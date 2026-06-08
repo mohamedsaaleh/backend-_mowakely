@@ -130,7 +130,7 @@ servers: [
             id: { type: 'string', example: '507f1f77bcf86cd799439011' },
             fullName: { type: 'string', example: 'John Doe' },
             email: { type: 'string', format: 'email', example: 'john@example.com' },
-            role: { type: 'string', enum: ['client', 'lawyer', 'admin'] },
+            role: { type: 'string', enum: ['client', 'lawyer', 'admin', 'superadmin'] },
             profileImage: { type: 'string', nullable: true },
             emailVerified: { type: 'boolean', example: false },
             isBanned: { type: 'boolean', example: false },

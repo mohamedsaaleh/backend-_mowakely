@@ -158,8 +158,10 @@ const router = express.Router();
 const adminController = require('./admin.controller');
 const { authenticate } = require('../../middlewares/auth.middleware');
 const { authorize } = require('../../middlewares/role.middleware');
+const { validate } = require('../../middlewares/validate.middleware');
+const { createAdminSchema } = require('./admin.validation');
 
-router.use(authenticate, authorize('admin'));
+router.use(authenticate, authorize('admin', 'superadmin'));
 
 router.get('/dashboard', adminController.getDashboardStats);
 router.get('/users', adminController.getAllUsers);
@@ -167,5 +169,6 @@ router.get('/lawyers', adminController.getAllLawyers);
 router.patch('/lawyers/:id/verify', adminController.verifyLawyer);
 router.patch('/users/:id/ban', adminController.banUser);
 router.patch('/invoices/:id/force-pay', adminController.markAsPaidOnly);
+router.post('/create-admin', authorize('superadmin'), validate(createAdminSchema), adminController.createAdmin);
 
 module.exports = router;

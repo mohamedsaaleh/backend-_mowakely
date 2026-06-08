@@ -60,6 +60,15 @@ class AdminController {
       next(error);
     }
   }
+
+  async createAdmin(req, res, next) {
+    try {
+      const admin = await adminService.createAdminUser(req.body);
+      res.status(201).json({ success: true, data: admin });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new AdminController();

@@ -5,6 +5,7 @@ const { Invoice } = require('../invoices/invoices.model');
 const { Payout } = require('../payouts/payouts.model');
 const { AppError } = require('../../middlewares/error.middleware');
 const { escapeRegex } = require('../../utils/escapeRegex');
+const bcrypt = require('bcryptjs');
 const logger = require('../../utils/logger');
 
 class AdminService {
@@ -102,6 +103,30 @@ class AdminService {
       lawyers,
       pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) }
     };
+  }
+
+  async createAdminUser(adminData) {
+    const existingUser = await User.findOne({ email: adminData.email.toLowerCase() });
+    if (existingUser) {
+      throw new AppError('Email already registered', 400);
+    }
+
+    const hashedPassword = await bcrypt.hash(adminData.password, 12);
+
+    const user = await User.create({
+      email: adminData.email.toLowerCase(),
+      password: hashedPassword,
+      role: 'admin',
+      full_name: adminData.full_name,
+      phone: adminData.phone,
+      city: adminData.city || '',
+      address: adminData.address || '',
+      bio: adminData.bio || '',
+      profile_photo: adminData.profile_photo || null,
+      is_verified: true
+    });
+
+    return user.toJSON();
   }
 
   async markAsPaidOnly(invoiceId, adminId, reason = 'Manual admin override') {

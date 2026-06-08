@@ -2,7 +2,8 @@ module.exports = {
   ROLES: {
     ADMIN: 'admin',
     LAWYER: 'lawyer',
-    CLIENT: 'client'
+    CLIENT: 'client',
+    SUPERADMIN: 'superadmin'
   },
 
   PERMISSIONS: {

@@ -104,13 +104,14 @@ function generateBudget() {
 async function seedAdmins(salt) {
   const adminEmails = ['admin@legalservices.com', 'superadmin@legalservices.com', 'support@legalservices.com'];
   const adminNames = ['System Admin', 'Super Admin', 'Support Admin'];
+  const adminRoles = ['admin', 'superadmin', 'admin'];
   
   const admins = [];
   for (let i = 0; i < adminEmails.length; i++) {
     const user = await User.create({
       email: adminEmails[i],
       password: await bcrypt.hash('Admin@123456', salt),
-      role: 'admin',
+      role: adminRoles[i],
       full_name: adminNames[i],
       phone: generatePhone(),
       is_verified: true
