@@ -55,7 +55,7 @@ servers: [
     description: 'Development server'
   },
   {
-    url: `${process.env.BASE_URL || 'https://your-app.up.railway.app'}/api`,
+    url: `${process.env.BASE_URL || 'https://chic-encouragement-production-0618.up.railway.app'}/api`,
     description: 'Production server'
   }
 ],
