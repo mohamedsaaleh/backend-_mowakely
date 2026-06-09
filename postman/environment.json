@@ -1,17 +1,95 @@
 {
-	"id": "e1f2g3h4-i5j6-7890-klmn-op1234567890",
+	"id": "env-mowakely-local",
 	"name": "Mowakely - Local",
 	"values": [
 		{
-			"key": "server_url",
-			"value": "http://localhost:5000",
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api",
 			"type": "default",
 			"enabled": true
 		},
 		{
-			"key": "stripeSignature",
+			"key": "token",
 			"value": "",
-			"type": "secret",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "superadminToken",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "caseId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "offerId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "categoryId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "lawyerId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "clientId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "invoiceId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "messageId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "payoutId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "reviewId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "transactionId",
+			"value": "",
+			"type": "default",
 			"enabled": true
 		}
 	],

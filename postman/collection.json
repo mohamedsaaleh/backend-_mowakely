@@ -1,56 +1,14 @@
 {
 	"info": {
-		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"_postman_id": "c7f9a2b4-8d1e-4f6c-9a3b-5e2d8f1c7a4b",
 		"name": "Mowakely API",
-		"description": "Complete API collection for the Mowakely legal platform. Covers Auth, Profile, Cases, Offers, Payments, Categories, Admin, Superadmin, Notifications, and Health modules.",
+		"description": "Complete API collection for the Mowakely legal marketplace platform. Built from source code analysis of all routes, controllers, models, validators, and middleware.\n\n## Authentication\n- Most endpoints require a JWT Bearer token in the `Authorization` header.\n- Login and Register endpoints auto-save the token to `{{token}}` via test scripts.\n- The `superadmin` role bypasses all role checks.\n\n## Roles\n- `client` - Can create cases, manage own cases, review lawyers, send/receive messages\n- `lawyer` - Can browse cases, make offers, manage profile, receive payouts\n- `admin` - Full admin dashboard, manage users/lawyers/cases/categories\n- `superadmin` - Full system access, manage admins, change roles, ban/unban\n\n## Environment Variables\nSet `baseUrl` to your server (default: `http://localhost:3000/api`).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "{{server_url}}/api",
-			"type": "string"
-		},
-		{
-			"key": "accessToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "adminToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "superadminToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "userId",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "caseId",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "offerId",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "categoryId",
-			"value": "",
-			"type": "string"
-		}
-	],
 	"item": [
 		{
 			"name": "Auth",
-			"description": "Authentication endpoints: register, login, token refresh, password management.",
+			"description": "Authentication endpoints. Register, login, refresh tokens, verify email, password management.",
 			"item": [
 				{
 					"name": "Register",
@@ -61,8 +19,11 @@
 								"exec": [
 									"if (pm.response.code === 201) {",
 									"    var json = pm.response.json();",
-									"    pm.collectionVariables.set('userId', json.user?._id || json.data?.user?._id);",
-									"    pm.collectionVariables.set('accessToken', json.token || json.data?.token);",
+									"    var data = json.data || json;",
+									"    if (data.accessToken || data.token) {",
+									"        pm.environment.set('token', data.accessToken || data.token);",
+									"    }",
+									"    if (data.user && data.user._id) pm.environment.set('userId', data.user._id);",
 									"}"
 								]
 							}
@@ -75,13 +36,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"full_name\": \"Test Client\",\n  \"email\": \"testclient@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567890\",\n  \"role\": \"client\",\n  \"city\": \"Cairo\",\n  \"address\": \"123 Main St\"\n}"
+							"raw": "{\n  \"full_name\": \"Ahmed Mohamed\",\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"client\",\n  \"phone\": \"+201234567890\",\n  \"city\": \"Cairo\",\n  \"address\": \"123 Main St\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/register",
 							"host": ["{{baseUrl}}"],
 							"path": ["auth", "register"]
-						}
+						},
+						"description": "Register a new user account. For lawyer registration, include `specialization` and `years_of_experience`. Rate-limited to 20 requests per 15 minutes."
 					}
 				},
 				{
@@ -93,11 +55,10 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    var json = pm.response.json();",
-									"    var token = json.accessToken || json.token || json.data?.accessToken || json.data?.token;",
-									"    if (token) {",
-									"        pm.collectionVariables.set('accessToken', token);",
-									"    }",
-									"    pm.collectionVariables.set('userId', json.user?._id || json.data?.user?._id);",
+									"    var data = json.data || json;",
+									"    var t = data.accessToken || data.token || '';",
+									"    if (t) pm.environment.set('token', t);",
+									"    if (data.user && data.user._id) pm.environment.set('userId', data.user._id);",
 									"}"
 								]
 							}
@@ -110,13 +71,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"testclient@example.com\",\n  \"password\": \"password123\"\n}"
+							"raw": "{\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"password123\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/login",
 							"host": ["{{baseUrl}}"],
 							"path": ["auth", "login"]
-						}
+						},
+						"description": "Authenticate with email and password. Returns access token (JWT, 15min expiry) and refresh token. Auto-saves token to `{{token}}`."
 					}
 				},
 				{
@@ -134,7 +96,53 @@
 							"raw": "{{baseUrl}}/auth/refresh",
 							"host": ["{{baseUrl}}"],
 							"path": ["auth", "refresh"]
-						}
+						},
+						"description": "Exchange a valid refresh token for a new access token."
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "logout"]
+						},
+						"description": "Logout the current user by revoking the refresh token. Requires authentication."
+					}
+				},
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "me"]
+						},
+						"description": "Get the currently authenticated user's profile. Response: `{ success: true, data: { user } }`."
+					}
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/auth/verify-email/:token",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "verify-email", ":token"],
+							"variable": [
+								{ "key": "token", "value": "VERIFICATION_TOKEN" }
+							]
+						},
+						"description": "Verify user email using the token sent via email."
 					}
 				},
 				{
@@ -146,13 +154,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"testclient@example.com\"\n}"
+							"raw": "{\n  \"email\": \"ahmed@example.com\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/forgot-password",
 							"host": ["{{baseUrl}}"],
 							"path": ["auth", "forgot-password"]
-						}
+						},
+						"description": "Send a password reset email to the specified address."
 					}
 				},
 				{
@@ -164,110 +173,136 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"password\": \"newpassword123\"\n}"
+							"raw": "{\n  \"password\": \"newstrongpassword\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/reset-password/:token",
 							"host": ["{{baseUrl}}"],
 							"path": ["auth", "reset-password", ":token"],
 							"variable": [
-								{ "key": "token", "value": "RESET_TOKEN_FROM_EMAIL" }
+								{ "key": "token", "value": "RESET_TOKEN" }
 							]
-						}
+						},
+						"description": "Reset password using the token from the reset email. Body: `{ password: string }` (min 6 chars)."
 					}
 				}
 			]
 		},
 		{
-			"name": "Profile",
-			"description": "User profile management: view and update your own profile, change password.",
+			"name": "Categories",
+			"description": "Public category listing. Admin routes for managing categories are under the Admin/Categories folder.",
 			"item": [
 				{
-					"name": "Get My Profile",
+					"name": "Get All Categories",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
-						],
 						"url": {
-							"raw": "{{baseUrl}}/profile/me",
+							"raw": "{{baseUrl}}/categories",
 							"host": ["{{baseUrl}}"],
-							"path": ["profile", "me"]
-						}
+							"path": ["categories"]
+						},
+						"description": "List all practice area categories. Public endpoint."
 					}
 				},
 				{
-					"name": "Update My Profile",
+					"name": "Get Category By ID",
 					"request": {
-						"method": "PUT",
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/categories/{{categoryId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["categories", "{{categoryId}}"]
+						},
+						"description": "Get a single category by ID. Public endpoint."
+					}
+				},
+				{
+					"name": "Create Category (Admin)",
+					"request": {
+						"method": "POST",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
 							{ "key": "Content-Type", "value": "application/json" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"full_name\": \"Updated Name\",\n  \"phone\": \"+201111111111\",\n  \"city\": \"Alexandria\",\n  \"address\": \"456 New St\",\n  \"bio\": \"Updated biography\"\n}"
+							"raw": "{\n  \"name\": \"criminal law\",\n  \"description\": \"Cases related to criminal offenses\",\n  \"icon\": \"gavel\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/profile/me",
+							"raw": "{{baseUrl}}/categories",
 							"host": ["{{baseUrl}}"],
-							"path": ["profile", "me"]
-						}
+							"path": ["categories"]
+						},
+						"description": "Create a new category. `name` is auto-uppercased. Requires admin or superadmin role."
 					}
 				},
 				{
-					"name": "Change Password",
+					"name": "Update Category (Admin)",
 					"request": {
-						"method": "PUT",
+						"method": "PATCH",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
 							{ "key": "Content-Type", "value": "application/json" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}"
+							"raw": "{\n  \"name\": \"family law\",\n  \"description\": \"Updated description\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/profile/change-password",
+							"raw": "{{baseUrl}}/categories/{{categoryId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["profile", "change-password"]
-						}
+							"path": ["categories", "{{categoryId}}"]
+						},
+						"description": "Update a category by ID. Requires admin or superadmin role."
+					}
+				},
+				{
+					"name": "Delete Category (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/categories/{{categoryId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["categories", "{{categoryId}}"]
+						},
+						"description": "Delete a category by ID. Requires admin or superadmin role."
 					}
 				}
 			]
 		},
 		{
 			"name": "Cases",
-			"description": "Case management: CRUD, search, status filters for clients and lawyers.",
+			"description": "Case management. Clients create cases, lawyers browse and make offers.",
 			"item": [
 				{
 					"name": "Create Case",
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
 							{ "key": "Content-Type", "value": "application/json" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Legal consultation needed for business contract\",\n  \"description\": \"I need a lawyer to review and draft a business partnership contract. The contract involves multiple stakeholders and requires careful legal review.\",\n  \"category\": \"CATEGORY_ID\",\n  \"city\": \"Cairo\",\n  \"budget\": 5000\n}"
+							"raw": "{\n  \"title\": \"Family inheritance dispute case\",\n  \"description\": \"I need legal assistance with dividing family inheritance property among siblings. The estate includes multiple properties and requires expert legal guidance.\",\n  \"category\": \"{{categoryId}}\",\n  \"city\": \"Cairo\",\n  \"budget\": 5000\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/cases",
 							"host": ["{{baseUrl}}"],
 							"path": ["cases"]
-						}
+						},
+						"description": "Create a new legal case. Requires client role. `title` min 5, `description` min 20 chars, `budget` min 2000."
 					}
 				},
 				{
 					"name": "Get All Cases",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
-						],
 						"url": {
-							"raw": "{{baseUrl}}/cases?page=1&limit=20&status=open",
+							"raw": "{{baseUrl}}/cases",
 							"host": ["{{baseUrl}}"],
 							"path": ["cases"],
 							"query": [
@@ -279,25 +314,27 @@
 								{ "key": "minBudget", "value": "", "disabled": true },
 								{ "key": "search", "value": "", "disabled": true }
 							]
-						}
+						},
+						"description": "List all cases with optional pagination and filtering. Public endpoint."
 					}
 				},
 				{
-					"name": "Get My Cases (Client)",
+					"name": "Get My Cases",
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
 						],
 						"url": {
-							"raw": "{{baseUrl}}/cases/my-cases?page=1&limit=20",
+							"raw": "{{baseUrl}}/cases/my-cases",
 							"host": ["{{baseUrl}}"],
 							"path": ["cases", "my-cases"],
 							"query": [
 								{ "key": "page", "value": "1" },
 								{ "key": "limit", "value": "20" }
 							]
-						}
+						},
+						"description": "Get cases for the authenticated client. Requires client role. Returns 404 if no client profile found."
 					}
 				},
 				{
@@ -305,50 +342,84 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
 						],
 						"url": {
-							"raw": "{{baseUrl}}/cases/lawyer-cases?page=1&limit=20",
+							"raw": "{{baseUrl}}/cases/lawyer-cases",
 							"host": ["{{baseUrl}}"],
 							"path": ["cases", "lawyer-cases"],
 							"query": [
 								{ "key": "page", "value": "1" },
 								{ "key": "limit", "value": "20" }
 							]
-						}
+						},
+						"description": "Get cases assigned to the authenticated lawyer. Requires lawyer role."
 					}
 				},
 				{
 					"name": "Get Case By ID",
 					"request": {
 						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
-						],
 						"url": {
 							"raw": "{{baseUrl}}/cases/{{caseId}}",
 							"host": ["{{baseUrl}}"],
 							"path": ["cases", "{{caseId}}"]
-						}
+						},
+						"description": "Get a single case by ID. Public endpoint."
 					}
 				},
 				{
 					"name": "Update Case",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    var data = json.data || json;",
+									"    if (data._id) pm.environment.set('caseId', data._id);",
+									"}"
+								]
+							}
+						}
+					],
 					"request": {
-						"method": "PUT",
+						"method": "PATCH",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
 							{ "key": "Content-Type", "value": "application/json" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Updated case title\",\n  \"budget\": 6000,\n  \"status\": \"in_progress\"\n}"
+							"raw": "{\n  \"title\": \"Updated inheritance case title\",\n  \"budget\": 6000,\n  \"status\": \"in_progress\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/cases/{{caseId}}",
 							"host": ["{{baseUrl}}"],
 							"path": ["cases", "{{caseId}}"]
-						}
+						},
+						"description": "Update a case by ID. `status` enum: open, in_progress, completed, cancelled."
+					}
+				},
+				{
+					"name": "Update Case Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"in_progress\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cases/{{caseId}}/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["cases", "{{caseId}}", "status"]
+						},
+						"description": "Update only the status of a case. Requires authentication."
 					}
 				},
 				{
@@ -356,52 +427,40 @@
 					"request": {
 						"method": "DELETE",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
 						],
 						"url": {
 							"raw": "{{baseUrl}}/cases/{{caseId}}",
 							"host": ["{{baseUrl}}"],
 							"path": ["cases", "{{caseId}}"]
-						}
+						},
+						"description": "Delete a case by ID. Requires client or admin role."
 					}
 				}
 			]
 		},
 		{
 			"name": "Offers",
-			"description": "Offer management: create offers on cases, update status, accept/reject.",
+			"description": "Offer management. Lawyers create offers on cases, clients accept/reject.",
 			"item": [
 				{
 					"name": "Create Offer",
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
 							{ "key": "Content-Type", "value": "application/json" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"case\": \"{{caseId}}\",\n  \"price\": 4500,\n  \"delivery_time\": 7,\n  \"message\": \"I can handle this case with my expertise in contract law.\"\n}"
+							"raw": "{\n  \"case\": \"{{caseId}}\",\n  \"price\": 3000,\n  \"delivery_time\": 14,\n  \"message\": \"I can handle this case with my 10 years of experience in family law.\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/offers",
 							"host": ["{{baseUrl}}"],
 							"path": ["offers"]
-						}
-					}
-				},
-				{
-					"name": "Get Offers For Case",
-					"request": {
-						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
-						],
-						"url": {
-							"raw": "{{baseUrl}}/offers/case/{{caseId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["offers", "case", "{{caseId}}"]
-						}
+						},
+						"description": "Create a new offer on a case. Requires lawyer role. One offer per lawyer per case (unique constraint)."
 					}
 				},
 				{
@@ -409,62 +468,71 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
 						],
 						"url": {
 							"raw": "{{baseUrl}}/offers/my-offers",
 							"host": ["{{baseUrl}}"],
 							"path": ["offers", "my-offers"]
-						}
+						},
+						"description": "Get offers made by the authenticated lawyer. Requires lawyer role."
+					}
+				},
+				{
+					"name": "Get Offers For Case",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/offers/case/{{caseId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "case", "{{caseId}}"]
+						},
+						"description": "Get all offers for a specific case. Public endpoint."
+					}
+				},
+				{
+					"name": "Get All Offers (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/offers",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers"]
+						},
+						"description": "Get all offers in the system. Requires admin role."
 					}
 				},
 				{
 					"name": "Accept Offer",
 					"request": {
-						"method": "POST",
+						"method": "PATCH",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
-							{ "key": "Content-Type", "value": "application/json" }
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
 						],
 						"url": {
 							"raw": "{{baseUrl}}/offers/{{offerId}}/accept",
 							"host": ["{{baseUrl}}"],
 							"path": ["offers", "{{offerId}}", "accept"]
-						}
+						},
+						"description": "Accept an offer. Only the client who owns the case can accept. Requires client role."
 					}
 				},
 				{
 					"name": "Reject Offer",
 					"request": {
-						"method": "POST",
+						"method": "PATCH",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
-							{ "key": "Content-Type", "value": "application/json" }
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
 						],
 						"url": {
 							"raw": "{{baseUrl}}/offers/{{offerId}}/reject",
 							"host": ["{{baseUrl}}"],
 							"path": ["offers", "{{offerId}}", "reject"]
-						}
-					}
-				},
-				{
-					"name": "Update Offer",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
-							{ "key": "Content-Type", "value": "application/json" }
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"price\": 5000,\n  \"delivery_time\": 10,\n  \"message\": \"Updated offer with more competitive pricing.\"\n}"
 						},
-						"url": {
-							"raw": "{{baseUrl}}/offers/{{offerId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["offers", "{{offerId}}"]
-						}
+						"description": "Reject an offer. Only the client who owns the case can reject. Requires client role."
 					}
 				},
 				{
@@ -472,98 +540,811 @@
 					"request": {
 						"method": "DELETE",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
 						],
 						"url": {
 							"raw": "{{baseUrl}}/offers/{{offerId}}",
 							"host": ["{{baseUrl}}"],
 							"path": ["offers", "{{offerId}}"]
-						}
+						},
+						"description": "Delete an offer by ID. Requires lawyer (own) or admin role."
 					}
 				}
 			]
 		},
 		{
-			"name": "Payments",
-			"description": "Payment processing: create Stripe checkout sessions and handle webhooks.",
+			"name": "Messages",
+			"description": "Case-related messaging between clients and lawyers. All endpoints require authentication (client, lawyer, or admin).",
 			"item": [
 				{
-					"name": "Create Payment Session",
+					"name": "Get Messages By Case",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/messages?caseId={{caseId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["messages"],
+							"query": [
+								{ "key": "caseId", "value": "{{caseId}}" }
+							]
+						},
+						"description": "Get all messages for a case. Pass `caseId` as query param. Requires auth."
+					}
+				},
+				{
+					"name": "Create Message",
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
 							{ "key": "Content-Type", "value": "application/json" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"invoiceId\": \"VALID_OBJECT_ID\"\n}"
+							"raw": "{\n  \"caseId\": \"{{caseId}}\",\n  \"message\": \"Thank you for your offer. I would like to discuss the terms further.\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/payments/create-checkout-session",
+							"raw": "{{baseUrl}}/messages",
 							"host": ["{{baseUrl}}"],
-							"path": ["payments", "create-checkout-session"]
-						}
+							"path": ["messages"]
+						},
+						"description": "Send a message in a case conversation. Body: `{ caseId, message }`. Message max 5000 chars."
 					}
 				},
 				{
-					"name": "Stripe Webhook",
+					"name": "Get Unread Messages Count",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/messages/unread?caseId={{caseId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["messages", "unread"],
+							"query": [
+								{ "key": "caseId", "value": "{{caseId}}" }
+							]
+						},
+						"description": "Get unread message count for a case. Response: `{ success: true, data: { unreadCount } }`."
+					}
+				}
+			]
+		},
+		{
+			"name": "Reviews",
+			"description": "Client reviews for lawyers.",
+			"item": [
+				{
+					"name": "Create Review",
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "stripe-signature", "value": "{{stripeSignature}}" }
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"cs_test_...\",\n      \"metadata\": {\n        \"invoiceId\": \"INVOICE_ID\"\n      }\n    }\n  }\n}"
+							"raw": "{\n  \"reviewedLawyer\": \"{{lawyerId}}\",\n  \"case\": \"{{caseId}}\",\n  \"rating\": 5,\n  \"comment\": \"Excellent lawyer, very professional and responsive.\"\n}"
 						},
 						"url": {
-							"raw": "{{server_url}}/api/payments/webhook",
-							"host": ["{{server_url}}"],
-							"path": ["api", "payments", "webhook"]
-						}
+							"raw": "{{baseUrl}}/reviews",
+							"host": ["{{baseUrl}}"],
+							"path": ["reviews"]
+						},
+						"description": "Create a review for a lawyer. Requires client role. `rating` 1-5, `comment` max 1000 chars."
 					}
-				}
-			]
-		},
-		{
-			"name": "Categories",
-			"description": "Public category listing.",
-			"item": [
+				},
 				{
-					"name": "Get All Categories",
+					"name": "Get Reviews By Lawyer",
 					"request": {
 						"method": "GET",
 						"url": {
-							"raw": "{{baseUrl}}/categories",
+							"raw": "{{baseUrl}}/reviews/lawyer/{{lawyerId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["categories"]
-						}
+							"path": ["reviews", "lawyer", "{{lawyerId}}"]
+						},
+						"description": "Get all reviews for a specific lawyer. Public endpoint."
 					}
-				}
-			]
-		},
-		{
-			"name": "Admin",
-			"description": "Admin-only endpoints for managing users, lawyers, cases, categories. Requires admin role token.",
-			"item": [
+				},
 				{
-					"name": "Dashboard Stats",
+					"name": "Get All Reviews (Admin)",
 					"request": {
 						"method": "GET",
 						"header": [
 							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
 						],
 						"url": {
-							"raw": "{{baseUrl}}/admin/dashboard",
+							"raw": "{{baseUrl}}/reviews",
 							"host": ["{{baseUrl}}"],
-							"path": ["admin", "dashboard"]
-						}
+							"path": ["reviews"]
+						},
+						"description": "Get all reviews in the system. Requires admin role."
 					}
 				},
 				{
-					"name": "Admin - Users",
-					"description": "Admin user management endpoints.",
+					"name": "Delete Review (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/reviews/{{reviewId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["reviews", "{{reviewId}}"]
+						},
+						"description": "Delete a review by ID. Requires admin role."
+					}
+				}
+			]
+		},
+		{
+			"name": "Invoices",
+			"description": "Invoice management for cases.",
+			"item": [
+				{
+					"name": "Create Invoice (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"caseId\": \"{{caseId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/invoices",
+							"host": ["{{baseUrl}}"],
+							"path": ["invoices"]
+						},
+						"description": "Create an invoice from a case. Requires admin role."
+					}
+				},
+				{
+					"name": "Get All Invoices (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/invoices",
+							"host": ["{{baseUrl}}"],
+							"path": ["invoices"]
+						},
+						"description": "Get all invoices with pagination. Requires admin role."
+					}
+				},
+				{
+					"name": "Get My Invoices (Client)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/invoices/my-invoices",
+							"host": ["{{baseUrl}}"],
+							"path": ["invoices", "my-invoices"]
+						},
+						"description": "Get invoices for the authenticated client. Requires client role."
+					}
+				},
+				{
+					"name": "Get Lawyer Invoices",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/invoices/lawyer-invoices",
+							"host": ["{{baseUrl}}"],
+							"path": ["invoices", "lawyer-invoices"]
+						},
+						"description": "Get invoices for the authenticated lawyer. Requires lawyer role."
+					}
+				},
+				{
+					"name": "Get Invoice By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/invoices/{{invoiceId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["invoices", "{{invoiceId}}"]
+						},
+						"description": "Get a single invoice by ID. Requires authentication."
+					}
+				}
+			]
+		},
+		{
+			"name": "Lawyers",
+			"description": "Lawyer profile management and public listing.",
+			"item": [
+				{
+					"name": "Get All Lawyers",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/lawyers",
+							"host": ["{{baseUrl}}"],
+							"path": ["lawyers"]
+						},
+						"description": "List all lawyers with pagination. Public endpoint."
+					}
+				},
+				{
+					"name": "Get Lawyer By ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/lawyers/{{lawyerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["lawyers", "{{lawyerId}}"]
+						},
+						"description": "Get a single lawyer profile by ID. Public endpoint."
+					}
+				},
+				{
+					"name": "Get My Lawyer Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/lawyers/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["lawyers", "me"]
+						},
+						"description": "Get the authenticated lawyer's profile. Requires lawyer role."
+					}
+				},
+				{
+					"name": "Update My Lawyer Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"specialization\": \"Corporate Law\",\n  \"years_of_experience\": 8,\n  \"rate\": 750,\n  \"availability_status\": true,\n  \"office_address\": \"456 Downtown, Cairo\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/lawyers/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["lawyers", "me"]
+						},
+						"description": "Update the authenticated lawyer's profile. Requires lawyer role."
+					}
+				},
+				{
+					"name": "Create Lawyer Profile (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/lawyers",
+							"host": ["{{baseUrl}}"],
+							"path": ["lawyers"]
+						},
+						"description": "Create a lawyer profile for an existing user. Requires admin role. Body: `{ userId }`."
+					}
+				},
+				{
+					"name": "Update Lawyer By ID (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"specialization\": \"Criminal Law\",\n  \"rate\": 800,\n  \"availability_status\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/lawyers/{{lawyerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["lawyers", "{{lawyerId}}"]
+						},
+						"description": "Update any lawyer profile by ID. Requires admin or lawyer role."
+					}
+				},
+				{
+					"name": "Delete Lawyer (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/lawyers/{{lawyerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["lawyers", "{{lawyerId}}"]
+						},
+						"description": "Delete a lawyer profile by ID. Requires admin role."
+					}
+				}
+			]
+		},
+		{
+			"name": "Clients",
+			"description": "Client profile management.",
+			"item": [
+				{
+					"name": "Get My Client Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/clients/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["clients", "me"]
+						},
+						"description": "Get the authenticated client's profile. Requires client role."
+					}
+				},
+				{
+					"name": "Update My Client Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"Updated Client Name\",\n  \"phone\": \"+201111222333\",\n  \"city\": \"Alexandria\",\n  \"bio\": \"Regular client seeking legal help\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/clients/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["clients", "me"]
+						},
+						"description": "Update the authenticated client's profile. Requires client role."
+					}
+				},
+				{
+					"name": "Get All Clients (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/clients",
+							"host": ["{{baseUrl}}"],
+							"path": ["clients"]
+						},
+						"description": "Get all clients with pagination. Requires admin role."
+					}
+				},
+				{
+					"name": "Create Client (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/clients",
+							"host": ["{{baseUrl}}"],
+							"path": ["clients"]
+						},
+						"description": "Create a client profile for an existing user. Body: `{ userId }`. Requires admin role."
+					}
+				},
+				{
+					"name": "Get Client By ID (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/clients/{{clientId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["clients", "{{clientId}}"]
+						},
+						"description": "Get a single client by ID. Requires admin role."
+					}
+				},
+				{
+					"name": "Update Client (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"Updated Client\",\n  \"phone\": \"+201333444555\",\n  \"city\": \"Luxor\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/clients/{{clientId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["clients", "{{clientId}}"]
+						},
+						"description": "Update a client by ID. Requires admin role."
+					}
+				},
+				{
+					"name": "Delete Client (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/clients/{{clientId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["clients", "{{clientId}}"]
+						},
+						"description": "Delete a client by ID. Requires admin role."
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"description": "User management (separate from admin/superadmin user management).",
+			"item": [
+				{
+					"name": "Get All Users (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"]
+						},
+						"description": "Get all users. Requires admin role."
+					}
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{userId}}"]
+						},
+						"description": "Get a single user by ID. Requires authentication."
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"Updated User\",\n  \"phone\": \"+201555666777\",\n  \"city\": \"Giza\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{userId}}"]
+						},
+						"description": "Update a user by ID. Requires authentication. No validation schema defined."
+					}
+				},
+				{
+					"name": "Delete User (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{userId}}"]
+						},
+						"description": "Delete a user by ID. Requires admin role."
+					}
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"description": "Payment processing with Paymob integration.",
+			"item": [
+				{
+					"name": "Create Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"invoiceId\": \"{{invoiceId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/payments/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "create"]
+						},
+						"description": "Create a payment session for an invoice. Requires client role. `invoiceId` must be a valid MongoDB ObjectId (24 hex chars)."
+					}
+				},
+				{
+					"name": "Verify Payment",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/payments/verify/{{transactionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "verify", "{{transactionId}}"]
+						},
+						"description": "Verify a payment transaction by ID. Public endpoint."
+					}
+				},
+				{
+					"name": "Get Payment By Invoice",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/payments/invoice/{{invoiceId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "invoice", "{{invoiceId}}"]
+						},
+						"description": "Get payment details by invoice ID. Requires authentication."
+					}
+				},
+				{
+					"name": "Payment Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"TRANSACTION\",\n  \"obj\": {\n    \"id\": \"PAYMOB_ORDER_ID\",\n    \"amount_cents\": 500000,\n    \"currency\": \"EGP\",\n    \"success\": true\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/payments/webhook",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "webhook"]
+						},
+						"description": "Webhook endpoint for Paymob payment callbacks. Public endpoint (no auth)."
+					}
+				}
+			]
+		},
+		{
+			"name": "Payouts",
+			"description": "Lawyer payout requests and admin management.",
+			"item": [
+				{
+					"name": "Request Payout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"invoice\": \"{{invoiceId}}\",\n  \"amount\": 5000,\n  \"method\": \"bank_transfer\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/payouts",
+							"host": ["{{baseUrl}}"],
+							"path": ["payouts"]
+						},
+						"description": "Request a payout. Requires lawyer role. `method` enum: paypal, bank_transfer, stripe."
+					}
+				},
+				{
+					"name": "Get My Payouts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/payouts/my-payouts",
+							"host": ["{{baseUrl}}"],
+							"path": ["payouts", "my-payouts"]
+						},
+						"description": "Get payouts for the authenticated lawyer. Requires lawyer role."
+					}
+				},
+				{
+					"name": "Get All Payouts (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/payouts",
+							"host": ["{{baseUrl}}"],
+							"path": ["payouts"]
+						},
+						"description": "Get all payouts with pagination. Requires admin role."
+					}
+				},
+				{
+					"name": "Update Payout Status (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"completed\",\n  \"providerRef\": \"PAYPAL_REF_12345\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/payouts/{{payoutId}}/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["payouts", "{{payoutId}}", "status"]
+						},
+						"description": "Update payout status. Requires admin role. `status` enum: pending, processing, completed, failed."
+					}
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"description": "User notification management. All endpoints require authentication (client, lawyer, or admin).",
+			"item": [
+				{
+					"name": "Get My Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications"]
+						},
+						"description": "Get notifications for the authenticated user."
+					}
+				},
+				{
+					"name": "Create Notification (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user\": \"{{userId}}\",\n  \"type\": \"admin_message\",\n  \"content\": \"Your case has been reviewed by an administrator.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications"]
+						},
+						"description": "Create a notification for a user. Requires admin role. `type` enum: offer_received, offer_accepted, new_message, review_added, admin_message."
+					}
+				},
+				{
+					"name": "Mark Notification as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/{{messageId}}/read",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "{{messageId}}", "read"]
+						},
+						"description": "Mark a single notification as read by ID."
+					}
+				},
+				{
+					"name": "Mark All Notifications as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/read-all",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "read-all"]
+						},
+						"description": "Mark all unread notifications as read for the authenticated user."
+					}
+				},
+				{
+					"name": "Delete Notification",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/{{messageId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "{{messageId}}"]
+						},
+						"description": "Delete a notification by ID."
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"description": "Admin dashboard and CRUD operations for users, lawyers, cases, categories. All endpoints require admin or superadmin role.",
+			"item": [
+				{
+					"name": "Dashboard",
+					"item": [
+						{
+							"name": "Get Dashboard Stats",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/dashboard",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "dashboard"]
+								},
+								"description": "Get admin dashboard statistics (counts and summaries)."
+							}
+						}
+					]
+				},
+				{
+					"name": "Users",
 					"item": [
 						{
 							"name": "Get All Users",
@@ -573,37 +1354,19 @@
 									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/admin/users?page=1&limit=20&role=client",
+									"raw": "{{baseUrl}}/admin/users",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "users"],
 									"query": [
 										{ "key": "page", "value": "1" },
 										{ "key": "limit", "value": "20" },
-										{ "key": "role", "value": "client", "disabled": true },
+										{ "key": "role", "value": "", "disabled": true },
 										{ "key": "is_verified", "value": "", "disabled": true },
 										{ "key": "is_banned", "value": "", "disabled": true },
 										{ "key": "search", "value": "", "disabled": true }
 									]
-								}
-							}
-						},
-						{
-							"name": "Create User",
-							"request": {
-								"method": "POST",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
-									{ "key": "Content-Type", "value": "application/json" }
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567891\",\n  \"role\": \"client\",\n  \"city\": \"Giza\",\n  \"address\": \"789 New Ave\"\n}"
 								},
-								"url": {
-									"raw": "{{baseUrl}}/admin/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["admin", "users"]
-								}
+								"description": "Get all users with pagination and optional role/status/search filters."
 							}
 						},
 						{
@@ -617,7 +1380,28 @@
 									"raw": "{{baseUrl}}/admin/users/{{userId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "users", "{{userId}}"]
-								}
+								},
+								"description": "Get a single user by ID."
+							}
+						},
+						{
+							"name": "Create User",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567891\",\n  \"role\": \"client\",\n  \"city\": \"Giza\",\n  \"is_verified\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "users"]
+								},
+								"description": "Create a new user (admin-provisioned, skips registration flow)."
 							}
 						},
 						{
@@ -630,13 +1414,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"Updated User\",\n  \"phone\": \"+201111222333\",\n  \"city\": \"Updated City\",\n  \"is_verified\": true,\n  \"is_banned\": false\n}"
+									"raw": "{\n  \"full_name\": \"Updated User\",\n  \"phone\": \"+201111222333\",\n  \"is_verified\": true,\n  \"is_banned\": false\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/admin/users/{{userId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "users", "{{userId}}"]
-								}
+								},
+								"description": "Update a user by ID. Cannot modify superadmin users."
 							}
 						},
 						{
@@ -650,14 +1435,54 @@
 									"raw": "{{baseUrl}}/admin/users/{{userId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "users", "{{userId}}"]
-								}
+								},
+								"description": "Delete a user by ID. Cannot delete superadmin users."
+							}
+						},
+						{
+							"name": "Toggle User Active",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"isActive\": false\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/users/{{userId}}/toggle-active",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "users", "{{userId}}", "toggle-active"]
+								},
+								"description": "Toggle a user's active status. Body: `{ isActive: boolean }`."
+							}
+						},
+						{
+							"name": "Ban User",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"banned\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/users/{{userId}}/ban",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "users", "{{userId}}", "ban"]
+								},
+								"description": "Ban or unban a user. Body: `{ banned: boolean }`."
 							}
 						}
 					]
 				},
 				{
-					"name": "Admin - Lawyers",
-					"description": "Admin lawyer management endpoints.",
+					"name": "Lawyers",
 					"item": [
 						{
 							"name": "Get All Lawyers",
@@ -667,17 +1492,18 @@
 									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/admin/lawyers?page=1&limit=20&is_verified=true",
+									"raw": "{{baseUrl}}/admin/lawyers",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "lawyers"],
 									"query": [
 										{ "key": "page", "value": "1" },
 										{ "key": "limit", "value": "20" },
-										{ "key": "is_verified", "value": "true", "disabled": true },
+										{ "key": "is_verified", "value": "", "disabled": true },
 										{ "key": "is_banned", "value": "", "disabled": true },
 										{ "key": "search", "value": "", "disabled": true }
 									]
-								}
+								},
+								"description": "Get all lawyers with pagination and optional filters."
 							}
 						},
 						{
@@ -688,10 +1514,11 @@
 									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/admin/lawyers/{{userId}}",
+									"raw": "{{baseUrl}}/admin/lawyers/{{lawyerId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["admin", "lawyers", "{{userId}}"]
-								}
+									"path": ["admin", "lawyers", "{{lawyerId}}"]
+								},
+								"description": "Get a single lawyer profile by ID."
 							}
 						},
 						{
@@ -704,13 +1531,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"New Lawyer\",\n  \"email\": \"newlawyer@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567892\",\n  \"specialization\": \"Criminal Law\",\n  \"years_of_experience\": 5,\n  \"office_address\": \"456 Law Building, Downtown\",\n  \"city\": \"Cairo\",\n  \"bio\": \"Experienced criminal defense lawyer\",\n  \"rate\": 500\n}"
+									"raw": "{\n  \"full_name\": \"New Lawyer\",\n  \"email\": \"lawyer@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567892\",\n  \"specialization\": \"Criminal Law\",\n  \"years_of_experience\": 5,\n  \"office_address\": \"456 Law Building\",\n  \"city\": \"Cairo\",\n  \"rate\": 500,\n  \"is_verified\": true\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/admin/lawyers",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "lawyers"]
-								}
+								},
+								"description": "Create a new lawyer profile."
 							}
 						},
 						{
@@ -723,13 +1551,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"Updated Lawyer\",\n  \"specialization\": \"Corporate Law\",\n  \"years_of_experience\": 8,\n  \"rate\": 750,\n  \"availability_status\": true\n}"
+									"raw": "{\n  \"specialization\": \"Corporate Law\",\n  \"rate\": 750,\n  \"availability_status\": true\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/admin/lawyers/{{userId}}",
+									"raw": "{{baseUrl}}/admin/lawyers/{{lawyerId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["admin", "lawyers", "{{userId}}"]
-								}
+									"path": ["admin", "lawyers", "{{lawyerId}}"]
+								},
+								"description": "Update a lawyer profile by ID."
 							}
 						},
 						{
@@ -740,10 +1569,11 @@
 									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/admin/lawyers/{{userId}}",
+									"raw": "{{baseUrl}}/admin/lawyers/{{lawyerId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["admin", "lawyers", "{{userId}}"]
-								}
+									"path": ["admin", "lawyers", "{{lawyerId}}"]
+								},
+								"description": "Delete a lawyer profile by ID."
 							}
 						},
 						{
@@ -759,17 +1589,17 @@
 									"raw": "{\n  \"verified\": true\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/admin/lawyers/{{userId}}/verify",
+									"raw": "{{baseUrl}}/admin/lawyers/{{lawyerId}}/verify",
 									"host": ["{{baseUrl}}"],
-									"path": ["admin", "lawyers", "{{userId}}", "verify"]
-								}
+									"path": ["admin", "lawyers", "{{lawyerId}}", "verify"]
+								},
+								"description": "Verify or un-verify a lawyer. Body: `{ verified: boolean }`."
 							}
 						}
 					]
 				},
 				{
-					"name": "Admin - Cases",
-					"description": "Admin case management endpoints.",
+					"name": "Cases",
 					"item": [
 						{
 							"name": "Get All Cases",
@@ -779,16 +1609,17 @@
 									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/admin/cases?page=1&limit=20&status=open",
+									"raw": "{{baseUrl}}/admin/cases",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "cases"],
 									"query": [
 										{ "key": "page", "value": "1" },
 										{ "key": "limit", "value": "20" },
-										{ "key": "status", "value": "open", "disabled": true },
+										{ "key": "status", "value": "", "disabled": true },
 										{ "key": "search", "value": "", "disabled": true }
 									]
-								}
+								},
+								"description": "Get all cases with pagination and optional filters."
 							}
 						},
 						{
@@ -802,11 +1633,12 @@
 									"raw": "{{baseUrl}}/admin/cases/{{caseId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "cases", "{{caseId}}"]
-								}
+								},
+								"description": "Get a single case by ID."
 							}
 						},
 						{
-							"name": "Create Case",
+							"name": "Create Case (Admin)",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -815,17 +1647,18 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"clientUserId\": \"{{userId}}\",\n  \"title\": \"Admin-created case for client\",\n  \"description\": \"This case was created by an admin on behalf of a client for legal consultation purposes.\",\n  \"category\": \"CATEGORY_ID\",\n  \"budget\": 3000,\n  \"city\": \"Cairo\",\n  \"status\": \"open\"\n}"
+									"raw": "{\n  \"clientUserId\": \"{{userId}}\",\n  \"title\": \"Admin-created case\",\n  \"description\": \"This case was created by an admin on behalf of a client.\",\n  \"category\": \"{{categoryId}}\",\n  \"budget\": 3000,\n  \"city\": \"Cairo\"\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/admin/cases",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "cases"]
-								}
+								},
+								"description": "Create a case on behalf of a client. Note: `clientUserId` is the User ID (not Client profile ID)."
 							}
 						},
 						{
-							"name": "Update Case",
+							"name": "Update Case (Admin)",
 							"request": {
 								"method": "PUT",
 								"header": [
@@ -834,17 +1667,18 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"title\": \"Admin updated case title\",\n  \"budget\": 4000,\n  \"status\": \"in_progress\"\n}"
+									"raw": "{\n  \"title\": \"Admin updated case\",\n  \"budget\": 4000,\n  \"status\": \"in_progress\"\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/admin/cases/{{caseId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "cases", "{{caseId}}"]
-								}
+								},
+								"description": "Update a case by ID."
 							}
 						},
 						{
-							"name": "Delete Case",
+							"name": "Delete Case (Admin)",
 							"request": {
 								"method": "DELETE",
 								"header": [
@@ -854,14 +1688,14 @@
 									"raw": "{{baseUrl}}/admin/cases/{{caseId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "cases", "{{caseId}}"]
-								}
+								},
+								"description": "Delete a case by ID."
 							}
 						}
 					]
 				},
 				{
-					"name": "Admin - Categories",
-					"description": "Admin category management endpoints.",
+					"name": "Categories",
 					"item": [
 						{
 							"name": "Get All Categories",
@@ -871,14 +1705,15 @@
 									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/admin/categories?page=1&limit=50",
+									"raw": "{{baseUrl}}/admin/categories",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "categories"],
 									"query": [
 										{ "key": "page", "value": "1" },
 										{ "key": "limit", "value": "50" }
 									]
-								}
+								},
+								"description": "Get all categories with pagination."
 							}
 						},
 						{
@@ -892,7 +1727,8 @@
 									"raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "categories", "{{categoryId}}"]
-								}
+								},
+								"description": "Get a single category by ID."
 							}
 						},
 						{
@@ -905,13 +1741,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"name\": \"Family Law\",\n  \"description\": \"Legal matters related to family relationships\",\n  \"icon\": \"family-icon\",\n  \"is_active\": true\n}"
+									"raw": "{\n  \"name\": \"Family Law\",\n  \"description\": \"Cases related to family matters\",\n  \"icon\": \"family-icon\",\n  \"is_active\": true\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/admin/categories",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "categories"]
-								}
+								},
+								"description": "Create a new category."
 							}
 						},
 						{
@@ -924,13 +1761,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"name\": \"Updated Family Law\",\n  \"description\": \"Updated description\",\n  \"is_active\": false\n}"
+									"raw": "{\n  \"name\": \"Updated Category\",\n  \"is_active\": false\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "categories", "{{categoryId}}"]
-								}
+								},
+								"description": "Update a category by ID."
 							}
 						},
 						{
@@ -944,34 +1782,115 @@
 									"raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["admin", "categories", "{{categoryId}}"]
-								}
+								},
+								"description": "Delete a category by ID."
 							}
 						}
 					]
+				},
+				{
+					"name": "Invoices",
+					"item": [
+						{
+							"name": "Force Mark Invoice as Paid",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"reason\": \"Manual override - client paid via bank transfer\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/invoices/{{invoiceId}}/force-pay",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "invoices", "{{invoiceId}}", "force-pay"]
+								},
+								"description": "Manually mark an invoice as paid (admin override)."
+							}
+						}
+					]
+				},
+				{
+					"name": "Create Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"New Admin\",\n  \"email\": \"newadmin@example.com\",\n  \"password\": \"adminpass123\",\n  \"phone\": \"+201234567894\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/create-admin",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "create-admin"]
+						},
+						"description": "Create a new admin user. NOTE: This route requires superadmin role despite being mounted under admin."
+					}
 				}
 			]
 		},
 		{
 			"name": "Superadmin",
-			"description": "Superadmin-only endpoints for full system management. Requires superadmin role token.",
+			"description": "Superadmin-only endpoints for full system management. All endpoints require superadmin role.",
 			"item": [
 				{
-					"name": "Dashboard Stats",
-					"request": {
-						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
-						],
-						"url": {
-							"raw": "{{baseUrl}}/superadmin/dashboard",
-							"host": ["{{baseUrl}}"],
-							"path": ["superadmin", "dashboard"]
+					"name": "Dashboard",
+					"item": [
+						{
+							"name": "Get Dashboard Stats",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/dashboard",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "dashboard"]
+								},
+								"description": "Get superadmin dashboard statistics."
+							}
+						},
+						{
+							"name": "Get Statistics",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/statistics",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "statistics"]
+								},
+								"description": "Get detailed system statistics."
+							}
+						},
+						{
+							"name": "Get Analytics",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/analytics",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "analytics"]
+								},
+								"description": "Get platform analytics data."
+							}
 						}
-					}
+					]
 				},
 				{
-					"name": "Superadmin - Users",
-					"description": "Superadmin user management endpoints.",
+					"name": "Users",
 					"item": [
 						{
 							"name": "Get All Users",
@@ -981,37 +1900,19 @@
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/users?page=1&limit=20&role=client",
+									"raw": "{{baseUrl}}/superadmin/users",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "users"],
 									"query": [
 										{ "key": "page", "value": "1" },
 										{ "key": "limit", "value": "20" },
-										{ "key": "role", "value": "client", "disabled": true },
+										{ "key": "role", "value": "", "disabled": true },
 										{ "key": "is_verified", "value": "", "disabled": true },
 										{ "key": "is_banned", "value": "", "disabled": true },
 										{ "key": "search", "value": "", "disabled": true }
 									]
-								}
-							}
-						},
-						{
-							"name": "Create User",
-							"request": {
-								"method": "POST",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
-									{ "key": "Content-Type", "value": "application/json" }
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"Superadmin Created User\",\n  \"email\": \"superuser@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567893\",\n  \"role\": \"client\",\n  \"city\": \"Luxor\"\n}"
 								},
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "users"]
-								}
+								"description": "Get all users with pagination and optional filters."
 							}
 						},
 						{
@@ -1025,7 +1926,28 @@
 									"raw": "{{baseUrl}}/superadmin/users/{{userId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "users", "{{userId}}"]
-								}
+								},
+								"description": "Get a single user by ID."
+							}
+						},
+						{
+							"name": "Create User",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567891\",\n  \"role\": \"client\",\n  \"is_verified\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "users"]
+								},
+								"description": "Create a new user (superadmin-provisioned). Role can be client, lawyer, admin, or superadmin."
 							}
 						},
 						{
@@ -1038,13 +1960,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"Superadmin Updated User\",\n  \"phone\": \"+201555666777\",\n  \"role\": \"lawyer\",\n  \"is_verified\": true\n}"
+									"raw": "{\n  \"full_name\": \"Updated User\",\n  \"role\": \"lawyer\",\n  \"is_verified\": true\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/superadmin/users/{{userId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "users", "{{userId}}"]
-								}
+								},
+								"description": "Update a user by ID. Can change role to any value including superadmin."
 							}
 						},
 						{
@@ -1058,11 +1981,12 @@
 									"raw": "{{baseUrl}}/superadmin/users/{{userId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "users", "{{userId}}"]
-								}
+								},
+								"description": "Delete a user by ID."
 							}
 						},
 						{
-							"name": "Ban / Unban User",
+							"name": "Ban User",
 							"request": {
 								"method": "PATCH",
 								"header": [
@@ -1077,7 +2001,78 @@
 									"raw": "{{baseUrl}}/superadmin/users/{{userId}}/ban",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "users", "{{userId}}", "ban"]
-								}
+								},
+								"description": "Ban a user. Body: `{ banned: boolean }`."
+							}
+						},
+						{
+							"name": "Unban User",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/users/{{userId}}/unban",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "users", "{{userId}}", "unban"]
+								},
+								"description": "Unban a user. No body required."
+							}
+						}
+					]
+				},
+				{
+					"name": "Admins",
+					"item": [
+						{
+							"name": "Get All Admins",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/admins",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "admins"]
+								},
+								"description": "Get all admin users with pagination."
+							}
+						},
+						{
+							"name": "Create Admin",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"New Admin\",\n  \"email\": \"newadmin@example.com\",\n  \"password\": \"adminpass123\",\n  \"phone\": \"+201234567894\",\n  \"role\": \"admin\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/create-admin",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "create-admin"]
+								},
+								"description": "Create a new admin user."
+							}
+						},
+						{
+							"name": "Delete Admin",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/admin/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "admin", "{{userId}}"]
+								},
+								"description": "Delete an admin user by ID."
 							}
 						},
 						{
@@ -1093,107 +2088,17 @@
 									"raw": "{\n  \"newRole\": \"client\"\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/users/{{userId}}/role",
+									"raw": "{{baseUrl}}/superadmin/change-role/{{userId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "users", "{{userId}}", "role"]
-								}
+									"path": ["superadmin", "change-role", "{{userId}}"]
+								},
+								"description": "Change a user's role. `newRole` enum: client, lawyer, admin. Cannot change own role."
 							}
 						}
 					]
 				},
 				{
-					"name": "Superadmin - Admins",
-					"description": "Superadmin admin account management.",
-					"item": [
-						{
-							"name": "Get All Admins",
-							"request": {
-								"method": "GET",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
-								],
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/admins?page=1&limit=20",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "admins"],
-									"query": [
-										{ "key": "page", "value": "1" },
-										{ "key": "limit", "value": "20" }
-									]
-								}
-							}
-						},
-						{
-							"name": "Get Admin By ID",
-							"request": {
-								"method": "GET",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
-								],
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/admins/{{userId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "admins", "{{userId}}"]
-								}
-							}
-						},
-						{
-							"name": "Create Admin",
-							"request": {
-								"method": "POST",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
-									{ "key": "Content-Type", "value": "application/json" }
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"New Admin\",\n  \"email\": \"newadmin@example.com\",\n  \"password\": \"adminpass123\",\n  \"phone\": \"+201234567894\"\n}"
-								},
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/admins",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "admins"]
-								}
-							}
-						},
-						{
-							"name": "Update Admin",
-							"request": {
-								"method": "PUT",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
-									{ "key": "Content-Type", "value": "application/json" }
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"Updated Admin\",\n  \"phone\": \"+201111222333\"\n}"
-								},
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/admins/{{userId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "admins", "{{userId}}"]
-								}
-							}
-						},
-						{
-							"name": "Delete Admin",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
-								],
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/admins/{{userId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "admins", "{{userId}}"]
-								}
-							}
-						}
-					]
-				},
-				{
-					"name": "Superadmin - Clients",
-					"description": "Superadmin client management.",
+					"name": "Clients",
 					"item": [
 						{
 							"name": "Get All Clients",
@@ -1203,14 +2108,11 @@
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/clients?page=1&limit=20",
+									"raw": "{{baseUrl}}/superadmin/clients",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "clients"],
-									"query": [
-										{ "key": "page", "value": "1" },
-										{ "key": "limit", "value": "20" }
-									]
-								}
+									"path": ["superadmin", "clients"]
+								},
+								"description": "Get all client profiles with pagination."
 							}
 						},
 						{
@@ -1221,10 +2123,11 @@
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/clients/{{userId}}",
+									"raw": "{{baseUrl}}/superadmin/clients/{{clientId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "clients", "{{userId}}"]
-								}
+									"path": ["superadmin", "clients", "{{clientId}}"]
+								},
+								"description": "Get a single client profile by ID."
 							}
 						},
 						{
@@ -1237,13 +2140,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"New Client\",\n  \"email\": \"superclient@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567895\"\n}"
+									"raw": "{\n  \"full_name\": \"New Client\",\n  \"email\": \"client@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567895\"\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/superadmin/clients",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "clients"]
-								}
+								},
+								"description": "Create a new client (creates both User and Client profile)."
 							}
 						},
 						{
@@ -1256,13 +2160,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"Updated Client Name\",\n  \"phone\": \"+201333444555\"\n}"
+									"raw": "{\n  \"full_name\": \"Updated Client\",\n  \"phone\": \"+201333444555\"\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/clients/{{userId}}",
+									"raw": "{{baseUrl}}/superadmin/clients/{{clientId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "clients", "{{userId}}"]
-								}
+									"path": ["superadmin", "clients", "{{clientId}}"]
+								},
+								"description": "Update a client profile by ID."
 							}
 						},
 						{
@@ -1273,17 +2178,17 @@
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/clients/{{userId}}",
+									"raw": "{{baseUrl}}/superadmin/clients/{{clientId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "clients", "{{userId}}"]
-								}
+									"path": ["superadmin", "clients", "{{clientId}}"]
+								},
+								"description": "Delete a client profile by ID."
 							}
 						}
 					]
 				},
 				{
-					"name": "Superadmin - Lawyers",
-					"description": "Superadmin lawyer management.",
+					"name": "Lawyers",
 					"item": [
 						{
 							"name": "Get All Lawyers",
@@ -1293,14 +2198,11 @@
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/lawyers?page=1&limit=20",
+									"raw": "{{baseUrl}}/superadmin/lawyers",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "lawyers"],
-									"query": [
-										{ "key": "page", "value": "1" },
-										{ "key": "limit", "value": "20" }
-									]
-								}
+									"path": ["superadmin", "lawyers"]
+								},
+								"description": "Get all lawyer profiles with pagination."
 							}
 						},
 						{
@@ -1311,10 +2213,11 @@
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/lawyers/{{userId}}",
+									"raw": "{{baseUrl}}/superadmin/lawyers/{{lawyerId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "lawyers", "{{userId}}"]
-								}
+									"path": ["superadmin", "lawyers", "{{lawyerId}}"]
+								},
+								"description": "Get a single lawyer profile by ID."
 							}
 						},
 						{
@@ -1327,13 +2230,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"full_name\": \"Superadmin Created Lawyer\",\n  \"email\": \"superlawyer@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567896\",\n  \"specialization\": \"Family Law\",\n  \"years_of_experience\": 10,\n  \"rate\": 1000\n}"
+									"raw": "{\n  \"full_name\": \"New Lawyer\",\n  \"email\": \"lawyer@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567892\",\n  \"specialization\": \"Family Law\",\n  \"years_of_experience\": 10,\n  \"rate\": 1000,\n  \"is_verified\": true\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/superadmin/lawyers",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "lawyers"]
-								}
+								},
+								"description": "Create a new lawyer (creates both User and Lawyer profile)."
 							}
 						},
 						{
@@ -1346,13 +2250,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"specialization\": \"Corporate Law\",\n  \"availability_status\": true,\n  \"rate\": 1200\n}"
+									"raw": "{\n  \"specialization\": \"Corporate Law\",\n  \"rate\": 1200,\n  \"availability_status\": true\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/lawyers/{{userId}}",
+									"raw": "{{baseUrl}}/superadmin/lawyers/{{lawyerId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "lawyers", "{{userId}}"]
-								}
+									"path": ["superadmin", "lawyers", "{{lawyerId}}"]
+								},
+								"description": "Update a lawyer profile by ID."
 							}
 						},
 						{
@@ -1363,10 +2268,11 @@
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/lawyers/{{userId}}",
+									"raw": "{{baseUrl}}/superadmin/lawyers/{{lawyerId}}",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "lawyers", "{{userId}}"]
-								}
+									"path": ["superadmin", "lawyers", "{{lawyerId}}"]
+								},
+								"description": "Delete a lawyer profile by ID."
 							}
 						},
 						{
@@ -1382,17 +2288,32 @@
 									"raw": "{\n  \"verified\": true\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/lawyers/{{userId}}/verify",
+									"raw": "{{baseUrl}}/superadmin/lawyers/{{lawyerId}}/verify",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "lawyers", "{{userId}}", "verify"]
-								}
+									"path": ["superadmin", "lawyers", "{{lawyerId}}", "verify"]
+								},
+								"description": "Verify a lawyer."
+							}
+						},
+						{
+							"name": "Unverify Lawyer",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/lawyers/{{lawyerId}}/unverify",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "lawyers", "{{lawyerId}}", "unverify"]
+								},
+								"description": "Remove verification from a lawyer. No body required."
 							}
 						}
 					]
 				},
 				{
-					"name": "Superadmin - Cases",
-					"description": "Superadmin case management.",
+					"name": "Cases",
 					"item": [
 						{
 							"name": "Get All Cases",
@@ -1402,14 +2323,11 @@
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/cases?page=1&limit=20",
+									"raw": "{{baseUrl}}/superadmin/cases",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "cases"],
-									"query": [
-										{ "key": "page", "value": "1" },
-										{ "key": "limit", "value": "20" }
-									]
-								}
+									"path": ["superadmin", "cases"]
+								},
+								"description": "Get all cases with pagination."
 							}
 						},
 						{
@@ -1423,7 +2341,8 @@
 									"raw": "{{baseUrl}}/superadmin/cases/{{caseId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "cases", "{{caseId}}"]
-								}
+								},
+								"description": "Get a single case by ID."
 							}
 						},
 						{
@@ -1436,13 +2355,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"title\": \"Superadmin created case\",\n  \"description\": \"This case was created by superadmin for testing purposes with all required fields included.\",\n  \"category\": \"CATEGORY_ID\",\n  \"budget\": 5000,\n  \"city\": \"Cairo\",\n  \"priority\": \"high\",\n  \"status\": \"open\"\n}"
+									"raw": "{\n  \"title\": \"Superadmin case\",\n  \"description\": \"Case description with all required details for processing.\",\n  \"category\": \"{{categoryId}}\",\n  \"budget\": 5000,\n  \"city\": \"Cairo\",\n  \"priority\": \"high\",\n  \"status\": \"open\"\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/superadmin/cases",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "cases"]
-								}
+								},
+								"description": "Create a new case. Supports `priority` (low, medium, high, urgent) and extended `status` values."
 							}
 						},
 						{
@@ -1455,13 +2375,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"title\": \"Superadmin updated case title\",\n  \"status\": \"in_progress\",\n  \"priority\": \"urgent\"\n}"
+									"raw": "{\n  \"title\": \"Updated title\",\n  \"status\": \"in_progress\",\n  \"priority\": \"urgent\"\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/superadmin/cases/{{caseId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "cases", "{{caseId}}"]
-								}
+								},
+								"description": "Update a case by ID."
 							}
 						},
 						{
@@ -1475,104 +2396,34 @@
 									"raw": "{{baseUrl}}/superadmin/cases/{{caseId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "cases", "{{caseId}}"]
-								}
-							}
-						}
-					]
-				},
-				{
-					"name": "Superadmin - Categories",
-					"description": "Superadmin category management.",
-					"item": [
-						{
-							"name": "Get All Categories",
-							"request": {
-								"method": "GET",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
-								],
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/categories?page=1&limit=50",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "categories"],
-									"query": [
-										{ "key": "page", "value": "1" },
-										{ "key": "limit", "value": "50" }
-									]
-								}
+								},
+								"description": "Delete a case by ID."
 							}
 						},
 						{
-							"name": "Get Category By ID",
+							"name": "Update Case Status",
 							"request": {
-								"method": "GET",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
-								],
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/categories/{{categoryId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "categories", "{{categoryId}}"]
-								}
-							}
-						},
-						{
-							"name": "Create Category",
-							"request": {
-								"method": "POST",
+								"method": "PATCH",
 								"header": [
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
 									{ "key": "Content-Type", "value": "application/json" }
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"name\": \"Constitutional Law\",\n  \"description\": \"Legal matters related to constitutional rights\",\n  \"icon\": \"constitution-icon\",\n  \"isActive\": true\n}"
+									"raw": "{\n  \"status\": \"completed\"\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/categories",
+									"raw": "{{baseUrl}}/superadmin/cases/{{caseId}}/status",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "categories"]
-								}
-							}
-						},
-						{
-							"name": "Update Category",
-							"request": {
-								"method": "PUT",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
-									{ "key": "Content-Type", "value": "application/json" }
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"name\": \"Updated Constitutional Law\",\n  \"isActive\": false\n}"
+									"path": ["superadmin", "cases", "{{caseId}}", "status"]
 								},
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/categories/{{categoryId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "categories", "{{categoryId}}"]
-								}
-							}
-						},
-						{
-							"name": "Delete Category",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
-								],
-								"url": {
-									"raw": "{{baseUrl}}/superadmin/categories/{{categoryId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "categories", "{{categoryId}}"]
-								}
+								"description": "Update only the status of a case."
 							}
 						}
 					]
 				},
 				{
-					"name": "Superadmin - Offers",
-					"description": "Superadmin offer management.",
+					"name": "Offers",
 					"item": [
 						{
 							"name": "Get All Offers",
@@ -1582,14 +2433,11 @@
 									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
 								],
 								"url": {
-									"raw": "{{baseUrl}}/superadmin/offers?page=1&limit=50",
+									"raw": "{{baseUrl}}/superadmin/offers",
 									"host": ["{{baseUrl}}"],
-									"path": ["superadmin", "offers"],
-									"query": [
-										{ "key": "page", "value": "1" },
-										{ "key": "limit", "value": "50" }
-									]
-								}
+									"path": ["superadmin", "offers"]
+								},
+								"description": "Get all offers with pagination."
 							}
 						},
 						{
@@ -1603,7 +2451,8 @@
 									"raw": "{{baseUrl}}/superadmin/offers/{{offerId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "offers", "{{offerId}}"]
-								}
+								},
+								"description": "Get a single offer by ID."
 							}
 						},
 						{
@@ -1622,7 +2471,8 @@
 									"raw": "{{baseUrl}}/superadmin/offers",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "offers"]
-								}
+								},
+								"description": "Create a new offer."
 							}
 						},
 						{
@@ -1641,7 +2491,8 @@
 									"raw": "{{baseUrl}}/superadmin/offers/{{offerId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "offers", "{{offerId}}"]
-								}
+								},
+								"description": "Update an offer by ID. `status` enum: pending, accepted, rejected, expired, withdrawn."
 							}
 						},
 						{
@@ -1655,61 +2506,181 @@
 									"raw": "{{baseUrl}}/superadmin/offers/{{offerId}}",
 									"host": ["{{baseUrl}}"],
 									"path": ["superadmin", "offers", "{{offerId}}"]
-								}
+								},
+								"description": "Delete an offer by ID."
 							}
 						}
 					]
-				}
-			]
-		},
-		{
-			"name": "Notifications",
-			"description": "Notification endpoints for the authenticated user.",
-			"item": [
-				{
-					"name": "Get My Notifications",
-					"request": {
-						"method": "GET",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
-						],
-						"url": {
-							"raw": "{{baseUrl}}/notifications",
-							"host": ["{{baseUrl}}"],
-							"path": ["notifications"]
-						}
-					}
 				},
 				{
-					"name": "Mark Notification as Read",
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
-						],
-						"url": {
-							"raw": "{{baseUrl}}/notifications/:id/read",
-							"host": ["{{baseUrl}}"],
-							"path": ["notifications", ":id", "read"],
-							"variable": [
-								{ "key": "id", "value": "NOTIFICATION_ID" }
-							]
+					"name": "Categories",
+					"item": [
+						{
+							"name": "Get All Categories",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories"]
+								},
+								"description": "Get all categories with pagination."
+							}
+						},
+						{
+							"name": "Get Category By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories/{{categoryId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories", "{{categoryId}}"]
+								},
+								"description": "Get a single category by ID."
+							}
+						},
+						{
+							"name": "Create Category",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Constitutional Law\",\n  \"description\": \"Constitutional rights cases\",\n  \"icon\": \"constitution\",\n  \"isActive\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories"]
+								},
+								"description": "Create a new category. Note: superadmin uses `isActive` (camelCase) while admin uses `is_active` (snake_case)."
+							}
+						},
+						{
+							"name": "Update Category",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Category\",\n  \"isActive\": false\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories/{{categoryId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories", "{{categoryId}}"]
+								},
+								"description": "Update a category by ID."
+							}
+						},
+						{
+							"name": "Delete Category",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories/{{categoryId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories", "{{categoryId}}"]
+								},
+								"description": "Delete a category by ID."
+							}
 						}
-					}
+					]
 				},
 				{
-					"name": "Mark All Notifications as Read",
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
-						],
-						"url": {
-							"raw": "{{baseUrl}}/notifications/read-all",
-							"host": ["{{baseUrl}}"],
-							"path": ["notifications", "read-all"]
+					"name": "Reviews",
+					"item": [
+						{
+							"name": "Get All Reviews",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/reviews",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "reviews"]
+								},
+								"description": "Get all reviews with pagination."
+							}
+						},
+						{
+							"name": "Get Review By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/reviews/{{reviewId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "reviews", "{{reviewId}}"]
+								},
+								"description": "Get a single review by ID."
+							}
+						},
+						{
+							"name": "Hide Review",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/reviews/{{reviewId}}/hide",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "reviews", "{{reviewId}}", "hide"]
+								},
+								"description": "Hide a review (soft-hide)."
+							}
+						},
+						{
+							"name": "Publish Review",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/reviews/{{reviewId}}/publish",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "reviews", "{{reviewId}}", "publish"]
+								},
+								"description": "Publish/unhide a review."
+							}
+						},
+						{
+							"name": "Delete Review",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/reviews/{{reviewId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "reviews", "{{reviewId}}"]
+								},
+								"description": "Delete a review by ID."
+							}
 						}
-					}
+					]
 				}
 			]
 		},
@@ -1718,25 +2689,62 @@
 			"description": "Server health check endpoints.",
 			"item": [
 				{
-					"name": "Root Health Check",
+					"name": "Root",
 					"request": {
 						"method": "GET",
 						"url": {
-							"raw": "{{server_url}}/",
-							"host": ["{{server_url}}"],
-							"path": [""]
-						}
+							"raw": "{{baseUrl}}/../",
+							"host": ["{{baseUrl}}"]
+						},
+						"description": "Root health check."
 					}
 				},
 				{
-					"name": "API Health Check",
+					"name": "Health Check",
 					"request": {
 						"method": "GET",
 						"url": {
-							"raw": "{{server_url}}/health",
-							"host": ["{{server_url}}"],
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
 							"path": ["health"]
-						}
+						},
+						"description": "Basic health check endpoint."
+					}
+				},
+				{
+					"name": "Ready Check",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/health/ready",
+							"host": ["{{baseUrl}}"],
+							"path": ["health", "ready"]
+						},
+						"description": "Readiness probe."
+					}
+				},
+				{
+					"name": "Live Check",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/health/live",
+							"host": ["{{baseUrl}}"],
+							"path": ["health", "live"]
+						},
+						"description": "Liveness probe."
+					}
+				},
+				{
+					"name": "Detailed Health",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/health/detailed",
+							"host": ["{{baseUrl}}"],
+							"path": ["health", "detailed"]
+						},
+						"description": "Detailed health information including uptime, memory, and database status."
 					}
 				}
 			]
