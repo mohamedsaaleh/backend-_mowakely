@@ -1,0 +1,1745 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Mowakely API",
+		"description": "Complete API collection for the Mowakely legal platform. Covers Auth, Profile, Cases, Offers, Payments, Categories, Admin, Superadmin, Notifications, and Health modules.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "{{server_url}}/api",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "superadminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "caseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "offerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "categoryId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"description": "Authentication endpoints: register, login, token refresh, password management.",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('userId', json.user?._id || json.data?.user?._id);",
+									"    pm.collectionVariables.set('accessToken', json.token || json.data?.token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"Test Client\",\n  \"email\": \"testclient@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567890\",\n  \"role\": \"client\",\n  \"city\": \"Cairo\",\n  \"address\": \"123 Main St\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    var token = json.accessToken || json.token || json.data?.accessToken || json.data?.token;",
+									"    if (token) {",
+									"        pm.collectionVariables.set('accessToken', token);",
+									"    }",
+									"    pm.collectionVariables.set('userId', json.user?._id || json.data?.user?._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testclient@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"YOUR_REFRESH_TOKEN\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "refresh"]
+						}
+					}
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testclient@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/forgot-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "forgot-password"]
+						}
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/reset-password/:token",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "reset-password", ":token"],
+							"variable": [
+								{ "key": "token", "value": "RESET_TOKEN_FROM_EMAIL" }
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Profile",
+			"description": "User profile management: view and update your own profile, change password.",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/profile/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "me"]
+						}
+					}
+				},
+				{
+					"name": "Update My Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"Updated Name\",\n  \"phone\": \"+201111111111\",\n  \"city\": \"Alexandria\",\n  \"address\": \"456 New St\",\n  \"bio\": \"Updated biography\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/profile/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "me"]
+						}
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/profile/change-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["profile", "change-password"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Cases",
+			"description": "Case management: CRUD, search, status filters for clients and lawyers.",
+			"item": [
+				{
+					"name": "Create Case",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Legal consultation needed for business contract\",\n  \"description\": \"I need a lawyer to review and draft a business partnership contract. The contract involves multiple stakeholders and requires careful legal review.\",\n  \"category\": \"CATEGORY_ID\",\n  \"city\": \"Cairo\",\n  \"budget\": 5000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cases",
+							"host": ["{{baseUrl}}"],
+							"path": ["cases"]
+						}
+					}
+				},
+				{
+					"name": "Get All Cases",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/cases?page=1&limit=20&status=open",
+							"host": ["{{baseUrl}}"],
+							"path": ["cases"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" },
+								{ "key": "status", "value": "open", "disabled": true },
+								{ "key": "category", "value": "", "disabled": true },
+								{ "key": "city", "value": "", "disabled": true },
+								{ "key": "minBudget", "value": "", "disabled": true },
+								{ "key": "search", "value": "", "disabled": true }
+							]
+						}
+					}
+				},
+				{
+					"name": "Get My Cases (Client)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/cases/my-cases?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["cases", "my-cases"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Lawyer Cases",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/cases/lawyer-cases?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["cases", "lawyer-cases"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Case By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/cases/{{caseId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["cases", "{{caseId}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Case",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated case title\",\n  \"budget\": 6000,\n  \"status\": \"in_progress\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cases/{{caseId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["cases", "{{caseId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Case",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/cases/{{caseId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["cases", "{{caseId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Offers",
+			"description": "Offer management: create offers on cases, update status, accept/reject.",
+			"item": [
+				{
+					"name": "Create Offer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"case\": \"{{caseId}}\",\n  \"price\": 4500,\n  \"delivery_time\": 7,\n  \"message\": \"I can handle this case with my expertise in contract law.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/offers",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers"]
+						}
+					}
+				},
+				{
+					"name": "Get Offers For Case",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/offers/case/{{caseId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "case", "{{caseId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get My Offers (Lawyer)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/offers/my-offers",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "my-offers"]
+						}
+					}
+				},
+				{
+					"name": "Accept Offer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/offers/{{offerId}}/accept",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "{{offerId}}", "accept"]
+						}
+					}
+				},
+				{
+					"name": "Reject Offer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/offers/{{offerId}}/reject",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "{{offerId}}", "reject"]
+						}
+					}
+				},
+				{
+					"name": "Update Offer",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 5000,\n  \"delivery_time\": 10,\n  \"message\": \"Updated offer with more competitive pricing.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/offers/{{offerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "{{offerId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Offer",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/offers/{{offerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["offers", "{{offerId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"description": "Payment processing: create Stripe checkout sessions and handle webhooks.",
+			"item": [
+				{
+					"name": "Create Payment Session",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"invoiceId\": \"VALID_OBJECT_ID\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/payments/create-checkout-session",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "create-checkout-session"]
+						}
+					}
+				},
+				{
+					"name": "Stripe Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "stripe-signature", "value": "{{stripeSignature}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"cs_test_...\",\n      \"metadata\": {\n        \"invoiceId\": \"INVOICE_ID\"\n      }\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{server_url}}/api/payments/webhook",
+							"host": ["{{server_url}}"],
+							"path": ["api", "payments", "webhook"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"description": "Public category listing.",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["categories"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"description": "Admin-only endpoints for managing users, lawyers, cases, categories. Requires admin role token.",
+			"item": [
+				{
+					"name": "Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/dashboard",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "dashboard"]
+						}
+					}
+				},
+				{
+					"name": "Admin - Users",
+					"description": "Admin user management endpoints.",
+					"item": [
+						{
+							"name": "Get All Users",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/users?page=1&limit=20&role=client",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "users"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "20" },
+										{ "key": "role", "value": "client", "disabled": true },
+										{ "key": "is_verified", "value": "", "disabled": true },
+										{ "key": "is_banned", "value": "", "disabled": true },
+										{ "key": "search", "value": "", "disabled": true }
+									]
+								}
+							}
+						},
+						{
+							"name": "Create User",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567891\",\n  \"role\": \"client\",\n  \"city\": \"Giza\",\n  \"address\": \"789 New Ave\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "users"]
+								}
+							}
+						},
+						{
+							"name": "Get User By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/users/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "users", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Update User",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"Updated User\",\n  \"phone\": \"+201111222333\",\n  \"city\": \"Updated City\",\n  \"is_verified\": true,\n  \"is_banned\": false\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/users/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "users", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete User",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/users/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "users", "{{userId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Admin - Lawyers",
+					"description": "Admin lawyer management endpoints.",
+					"item": [
+						{
+							"name": "Get All Lawyers",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/lawyers?page=1&limit=20&is_verified=true",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "lawyers"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "20" },
+										{ "key": "is_verified", "value": "true", "disabled": true },
+										{ "key": "is_banned", "value": "", "disabled": true },
+										{ "key": "search", "value": "", "disabled": true }
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Lawyer By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/lawyers/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "lawyers", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Create Lawyer",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"New Lawyer\",\n  \"email\": \"newlawyer@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567892\",\n  \"specialization\": \"Criminal Law\",\n  \"years_of_experience\": 5,\n  \"office_address\": \"456 Law Building, Downtown\",\n  \"city\": \"Cairo\",\n  \"bio\": \"Experienced criminal defense lawyer\",\n  \"rate\": 500\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/lawyers",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "lawyers"]
+								}
+							}
+						},
+						{
+							"name": "Update Lawyer",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"Updated Lawyer\",\n  \"specialization\": \"Corporate Law\",\n  \"years_of_experience\": 8,\n  \"rate\": 750,\n  \"availability_status\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/lawyers/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "lawyers", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Lawyer",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/lawyers/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "lawyers", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Verify Lawyer",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"verified\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/lawyers/{{userId}}/verify",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "lawyers", "{{userId}}", "verify"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Admin - Cases",
+					"description": "Admin case management endpoints.",
+					"item": [
+						{
+							"name": "Get All Cases",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/cases?page=1&limit=20&status=open",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "cases"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "20" },
+										{ "key": "status", "value": "open", "disabled": true },
+										{ "key": "search", "value": "", "disabled": true }
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Case By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/cases/{{caseId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "cases", "{{caseId}}"]
+								}
+							}
+						},
+						{
+							"name": "Create Case",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"clientUserId\": \"{{userId}}\",\n  \"title\": \"Admin-created case for client\",\n  \"description\": \"This case was created by an admin on behalf of a client for legal consultation purposes.\",\n  \"category\": \"CATEGORY_ID\",\n  \"budget\": 3000,\n  \"city\": \"Cairo\",\n  \"status\": \"open\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/cases",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "cases"]
+								}
+							}
+						},
+						{
+							"name": "Update Case",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Admin updated case title\",\n  \"budget\": 4000,\n  \"status\": \"in_progress\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/cases/{{caseId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "cases", "{{caseId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Case",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/cases/{{caseId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "cases", "{{caseId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Admin - Categories",
+					"description": "Admin category management endpoints.",
+					"item": [
+						{
+							"name": "Get All Categories",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/categories?page=1&limit=50",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "categories"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "50" }
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Category By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "categories", "{{categoryId}}"]
+								}
+							}
+						},
+						{
+							"name": "Create Category",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Family Law\",\n  \"description\": \"Legal matters related to family relationships\",\n  \"icon\": \"family-icon\",\n  \"is_active\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/categories",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "categories"]
+								}
+							}
+						},
+						{
+							"name": "Update Category",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Family Law\",\n  \"description\": \"Updated description\",\n  \"is_active\": false\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "categories", "{{categoryId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Category",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{adminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["admin", "categories", "{{categoryId}}"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Superadmin",
+			"description": "Superadmin-only endpoints for full system management. Requires superadmin role token.",
+			"item": [
+				{
+					"name": "Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/superadmin/dashboard",
+							"host": ["{{baseUrl}}"],
+							"path": ["superadmin", "dashboard"]
+						}
+					}
+				},
+				{
+					"name": "Superadmin - Users",
+					"description": "Superadmin user management endpoints.",
+					"item": [
+						{
+							"name": "Get All Users",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/users?page=1&limit=20&role=client",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "users"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "20" },
+										{ "key": "role", "value": "client", "disabled": true },
+										{ "key": "is_verified", "value": "", "disabled": true },
+										{ "key": "is_banned", "value": "", "disabled": true },
+										{ "key": "search", "value": "", "disabled": true }
+									]
+								}
+							}
+						},
+						{
+							"name": "Create User",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"Superadmin Created User\",\n  \"email\": \"superuser@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567893\",\n  \"role\": \"client\",\n  \"city\": \"Luxor\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "users"]
+								}
+							}
+						},
+						{
+							"name": "Get User By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/users/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "users", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Update User",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"Superadmin Updated User\",\n  \"phone\": \"+201555666777\",\n  \"role\": \"lawyer\",\n  \"is_verified\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/users/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "users", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete User",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/users/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "users", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Ban / Unban User",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"banned\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/users/{{userId}}/ban",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "users", "{{userId}}", "ban"]
+								}
+							}
+						},
+						{
+							"name": "Change User Role",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"newRole\": \"client\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/users/{{userId}}/role",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "users", "{{userId}}", "role"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Superadmin - Admins",
+					"description": "Superadmin admin account management.",
+					"item": [
+						{
+							"name": "Get All Admins",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/admins?page=1&limit=20",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "admins"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "20" }
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Admin By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/admins/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "admins", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Create Admin",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"New Admin\",\n  \"email\": \"newadmin@example.com\",\n  \"password\": \"adminpass123\",\n  \"phone\": \"+201234567894\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/admins",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "admins"]
+								}
+							}
+						},
+						{
+							"name": "Update Admin",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"Updated Admin\",\n  \"phone\": \"+201111222333\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/admins/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "admins", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Admin",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/admins/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "admins", "{{userId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Superadmin - Clients",
+					"description": "Superadmin client management.",
+					"item": [
+						{
+							"name": "Get All Clients",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/clients?page=1&limit=20",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "clients"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "20" }
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Client By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/clients/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "clients", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Create Client",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"New Client\",\n  \"email\": \"superclient@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567895\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/clients",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "clients"]
+								}
+							}
+						},
+						{
+							"name": "Update Client",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"Updated Client Name\",\n  \"phone\": \"+201333444555\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/clients/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "clients", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Client",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/clients/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "clients", "{{userId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Superadmin - Lawyers",
+					"description": "Superadmin lawyer management.",
+					"item": [
+						{
+							"name": "Get All Lawyers",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/lawyers?page=1&limit=20",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "lawyers"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "20" }
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Lawyer By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/lawyers/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "lawyers", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Create Lawyer",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"full_name\": \"Superadmin Created Lawyer\",\n  \"email\": \"superlawyer@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+201234567896\",\n  \"specialization\": \"Family Law\",\n  \"years_of_experience\": 10,\n  \"rate\": 1000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/lawyers",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "lawyers"]
+								}
+							}
+						},
+						{
+							"name": "Update Lawyer",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"specialization\": \"Corporate Law\",\n  \"availability_status\": true,\n  \"rate\": 1200\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/lawyers/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "lawyers", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Lawyer",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/lawyers/{{userId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "lawyers", "{{userId}}"]
+								}
+							}
+						},
+						{
+							"name": "Verify Lawyer",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"verified\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/lawyers/{{userId}}/verify",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "lawyers", "{{userId}}", "verify"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Superadmin - Cases",
+					"description": "Superadmin case management.",
+					"item": [
+						{
+							"name": "Get All Cases",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/cases?page=1&limit=20",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "cases"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "20" }
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Case By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/cases/{{caseId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "cases", "{{caseId}}"]
+								}
+							}
+						},
+						{
+							"name": "Create Case",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Superadmin created case\",\n  \"description\": \"This case was created by superadmin for testing purposes with all required fields included.\",\n  \"category\": \"CATEGORY_ID\",\n  \"budget\": 5000,\n  \"city\": \"Cairo\",\n  \"priority\": \"high\",\n  \"status\": \"open\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/cases",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "cases"]
+								}
+							}
+						},
+						{
+							"name": "Update Case",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Superadmin updated case title\",\n  \"status\": \"in_progress\",\n  \"priority\": \"urgent\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/cases/{{caseId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "cases", "{{caseId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Case",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/cases/{{caseId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "cases", "{{caseId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Superadmin - Categories",
+					"description": "Superadmin category management.",
+					"item": [
+						{
+							"name": "Get All Categories",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories?page=1&limit=50",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "50" }
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Category By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories/{{categoryId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories", "{{categoryId}}"]
+								}
+							}
+						},
+						{
+							"name": "Create Category",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Constitutional Law\",\n  \"description\": \"Legal matters related to constitutional rights\",\n  \"icon\": \"constitution-icon\",\n  \"isActive\": true\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories"]
+								}
+							}
+						},
+						{
+							"name": "Update Category",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Constitutional Law\",\n  \"isActive\": false\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories/{{categoryId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories", "{{categoryId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Category",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/categories/{{categoryId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "categories", "{{categoryId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Superadmin - Offers",
+					"description": "Superadmin offer management.",
+					"item": [
+						{
+							"name": "Get All Offers",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/offers?page=1&limit=50",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "offers"],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "limit", "value": "50" }
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Offer By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/offers/{{offerId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "offers", "{{offerId}}"]
+								}
+							}
+						},
+						{
+							"name": "Create Offer",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"case\": \"{{caseId}}\",\n  \"price\": 3000,\n  \"message\": \"Offer created by superadmin\",\n  \"delivery_time\": 14\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/offers",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "offers"]
+								}
+							}
+						},
+						{
+							"name": "Update Offer",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"price\": 3500,\n  \"delivery_time\": 10,\n  \"status\": \"accepted\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/offers/{{offerId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "offers", "{{offerId}}"]
+								}
+							}
+						},
+						{
+							"name": "Delete Offer",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Authorization", "value": "Bearer {{superadminToken}}" }
+								],
+								"url": {
+									"raw": "{{baseUrl}}/superadmin/offers/{{offerId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["superadmin", "offers", "{{offerId}}"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"description": "Notification endpoints for the authenticated user.",
+			"item": [
+				{
+					"name": "Get My Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications"]
+						}
+					}
+				},
+				{
+					"name": "Mark Notification as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/:id/read",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", ":id", "read"],
+							"variable": [
+								{ "key": "id", "value": "NOTIFICATION_ID" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Mark All Notifications as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/read-all",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "read-all"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"description": "Server health check endpoints.",
+			"item": [
+				{
+					"name": "Root Health Check",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{server_url}}/",
+							"host": ["{{server_url}}"],
+							"path": [""]
+						}
+					}
+				},
+				{
+					"name": "API Health Check",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{server_url}}/health",
+							"host": ["{{server_url}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
