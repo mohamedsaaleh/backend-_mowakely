@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const config = require('../../config/env');
 const { User } = require('../users/users.model');
 const { Lawyer } = require('../lawyers/lawyers.model');
@@ -68,12 +69,27 @@ class AuthService {
 
   async login(email, password, userAgent = 'unknown', ipAddress = 'unknown') {
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    logger.debug(`Login attempt for email: ${email.toLowerCase()}`);
+
     if (!user) {
+      logger.warn(`Login failed: user not found for email: ${email.toLowerCase()}`);
       throw new AppError('Invalid email or password', 401);
     }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
+    logger.debug(`User found: ${user._id}, password length: ${user.password ? user.password.length : 0}`);
+
+    const isBcrypt = user.password && user.password.startsWith('$2');
+    let passwordValid = false;
+
+    if (!isBcrypt) {
+      logger.warn(`Legacy plain-text password detected for user: ${user._id}`);
+      passwordValid = password === user.password;
+    } else {
+      passwordValid = await user.comparePassword(password);
+    }
+
+    if (!passwordValid) {
+      logger.warn(`Login failed: password mismatch for user: ${user._id}`);
       throw new AppError('Invalid email or password', 401);
     }
 
@@ -81,8 +97,23 @@ class AuthService {
       throw new AppError('Your account has been banned', 403);
     }
 
-    user.lastLogin = new Date();
-    await user.save();
+    if (!isBcrypt) {
+      const salt = await bcrypt.genSalt(12);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      await User.updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            password: hashedPassword,
+            lastLogin: new Date()
+          }
+        }
+      );
+      logger.info(`Password migrated for legacy user: ${user._id}`);
+    } else {
+      user.lastLogin = new Date();
+      await user.save();
+    }
 
     const accessToken = this.generateAccessToken(user._id);
     const refreshToken = await this.generateRefreshToken(user._id, userAgent, ipAddress);
