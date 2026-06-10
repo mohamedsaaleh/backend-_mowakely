@@ -157,10 +157,10 @@ class AuthService {
   }
 
   async verifyEmail(token) {
-    const hashedToken = hashToken(token);
+    // const hashedToken = hashToken(token);
 
     const user = await User.findOne({
-      emailVerificationToken: hashedToken,
+      emailVerificationToken: token,
       emailVerificationExpires: { $gt: new Date() }
     });
 
