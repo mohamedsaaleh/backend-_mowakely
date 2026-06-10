@@ -94,6 +94,36 @@ router.post('/login', validate(loginSchema), authController.login);
 
 /**
  * @swagger
+ * /auth/dev-login:
+ *   post:
+ *     summary: Development login (testing only)
+ *     tags: [Auth]
+ *     description: Login endpoint for testing purposes. Same as /login but explicitly marked for development/testing use.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
+ */
+router.post('/dev-login', validate(loginSchema), authController.devLogin);
+
+/**
+ * @swagger
  * /auth/refresh:
  *   post:
  *     summary: Refresh access token

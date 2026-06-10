@@ -96,6 +96,21 @@ class AuthController {
     }
   }
 
+  async devLogin(req, res, next) {
+    try {
+      const userAgent = req.get('user-agent') || 'unknown';
+      const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+      const result = await authService.login(req.body.email, req.body.password, userAgent, ipAddress);
+      res.json({
+        success: true,
+        message: 'Development login successful',
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getMe(req, res, next) {
     try {
       const result = await authService.getMe(req.user._id);

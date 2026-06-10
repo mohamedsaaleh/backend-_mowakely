@@ -82,6 +82,41 @@
 					}
 				},
 				{
+					"name": "Dev Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    var data = json.data || json;",
+									"    var t = data.accessToken || data.token || '';",
+									"    if (t) pm.environment.set('token', t);",
+									"    if (data.user && data.user._id) pm.environment.set('userId', data.user._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/dev-login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "dev-login"]
+						},
+						"description": "Development/testing login endpoint. Same as /login but explicitly marked for testing. Auto-saves token to `{{token}}`."
+					}
+				},
+				{
 					"name": "Refresh Token",
 					"request": {
 						"method": "POST",
