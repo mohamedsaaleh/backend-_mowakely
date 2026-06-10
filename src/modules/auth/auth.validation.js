@@ -4,7 +4,7 @@ const registerSchema = Joi.object({
   full_name: Joi.string().min(2).max(100).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).max(100).required(),
-  role: Joi.string().valid('client', 'lawyer', 'admin').required(),
+  role: Joi.string().valid('client', 'lawyer', 'admin','superadmin').required(),
   phone: Joi.string().required(),
   city: Joi.string().allow('', null),
   address: Joi.string().allow('', null),
