@@ -52,7 +52,7 @@
  *     summary: Get platform analytics
  *     tags: [Superadmin]
  *     security:
- *       - bearerAuth: []
+ *       - bearerAuth: [] 
  *     responses:
  *       200:
  *         description: Analytics retrieved successfully
