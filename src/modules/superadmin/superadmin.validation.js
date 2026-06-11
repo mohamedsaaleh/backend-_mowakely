@@ -10,8 +10,8 @@ const createUserSchema = Joi.object({
   address: Joi.string().allow('', null),
   bio: Joi.string().allow('', null),
   profile_photo: Joi.string().allow('', null),
-  is_verified: Joi.boolean().optional(),
-  is_banned: Joi.boolean().optional(),
+  is_verified: Joi.boolean().empty('').optional(),
+  is_banned: Joi.boolean().empty('').optional(),
   specialization: Joi.string().optional(),
   years_of_experience: Joi.number().integer().min(0).optional(),
   office_address: Joi.string().allow('', null).optional()
@@ -25,8 +25,8 @@ const updateUserSchema = Joi.object({
   bio: Joi.string().allow('', null).optional(),
   profile_photo: Joi.string().allow('', null).optional(),
   role: Joi.string().valid('client', 'lawyer', 'admin', 'superadmin').optional(),
-  is_verified: Joi.boolean().optional(),
-  is_banned: Joi.boolean().optional()
+  is_verified: Joi.boolean().empty('').optional(),
+  is_banned: Joi.boolean().empty('').optional()
 });
 
 const createClientSchema = Joi.object({
@@ -38,7 +38,7 @@ const createClientSchema = Joi.object({
   address: Joi.string().allow('', null),
   bio: Joi.string().allow('', null),
   profile_photo: Joi.string().allow('', null),
-  is_verified: Joi.boolean().optional()
+  is_verified: Joi.boolean().empty('').optional()
 });
 
 const updateClientSchema = Joi.object({
@@ -62,9 +62,9 @@ const createLawyerSchema = Joi.object({
   address: Joi.string().allow('', null).optional(),
   bio: Joi.string().allow('', null).optional(),
   profile_photo: Joi.string().allow('', null).optional(),
-  availability_status: Joi.boolean().optional(),
+  availability_status: Joi.boolean().empty('').optional(),
   rate: Joi.number().min(0).optional(),
-  is_verified: Joi.boolean().optional()
+  is_verified: Joi.boolean().empty('').optional()
 });
 
 const updateLawyerSchema = Joi.object({
@@ -77,7 +77,7 @@ const updateLawyerSchema = Joi.object({
   specialization: Joi.string().optional(),
   years_of_experience: Joi.number().integer().min(0).optional(),
   office_address: Joi.string().allow('', null).optional(),
-  availability_status: Joi.boolean().optional(),
+  availability_status: Joi.boolean().empty('').optional(),
   rate: Joi.number().min(0).optional()
 });
 
@@ -119,14 +119,14 @@ const createCategorySchema = Joi.object({
   name: Joi.string().required(),
   description: Joi.string().allow('', null).optional(),
   icon: Joi.string().allow('', null).optional(),
-  isActive: Joi.boolean().optional()
+  isActive: Joi.boolean().empty('').optional()
 });
 
 const updateCategorySchema = Joi.object({
   name: Joi.string().optional(),
   description: Joi.string().allow('', null).optional(),
   icon: Joi.string().allow('', null).optional(),
-  isActive: Joi.boolean().optional()
+  isActive: Joi.boolean().empty('').optional()
 });
 
 const verifyLawyerSchema = Joi.object({
