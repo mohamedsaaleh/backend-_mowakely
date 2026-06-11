@@ -189,7 +189,15 @@ const { validate } = require('../../middlewares/validate.middleware');
 const Joi = require('joi');
 
 const createClientSchema = Joi.object({
-  userId: Joi.string().required()
+  full_name: Joi.string().required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+  phone: Joi.string().required(),
+  city: Joi.string().optional().allow(''),
+  address: Joi.string().optional().allow(''),
+  bio: Joi.string().optional().allow(''),
+  profile_photo: Joi.string().optional().allow(''),
+  is_verified: Joi.boolean().optional()
 });
 
 const updateClientSchema = Joi.object({

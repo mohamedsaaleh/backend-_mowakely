@@ -45,31 +45,29 @@ class ClientService {
     return result;
   }
 
-  async createClient(userId) {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new AppError('User not found', 404);
+  async createClient(clientData) {
+    const existingUser = await User.findOne({ email: clientData.email.toLowerCase() });
+    if (existingUser) {
+      throw new AppError('Email already registered', 400);
     }
 
-    const existingClient = await Client.findOne({ user: userId });
-    if (existingClient) {
-      throw new AppError('Client profile already exists for this user', 400);
-    }
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(clientData.password, 12);
 
-    const client = await Client.create({
-      user: userId,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      full_name: user.full_name,
-      phone: user.phone,
-      city: user.city,
-      address: user.address,
-      bio: user.bio,
-      profile_photo: user.profile_photo,
-      is_verified: user.is_verified,
-      is_banned: user.is_banned
+    const user = await User.create({
+      email: clientData.email.toLowerCase(),
+      password: hashedPassword,
+      role: 'client',
+      full_name: clientData.full_name,
+      phone: clientData.phone,
+      city: clientData.city || '',
+      address: clientData.address || '',
+      bio: clientData.bio || '',
+      profile_photo: clientData.profile_photo || null,
+      is_verified: clientData.is_verified || false
     });
+
+    const client = await Client.create({ user: user._id });
     
     return await Client.findById(client._id)
       .populate('user', '-password -emailVerificationToken -passwordResetToken -passwordResetExpires');

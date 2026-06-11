@@ -30,7 +30,7 @@ class ClientController {
 
   async create(req, res, next) {
     try {
-      const client = await clientService.createClient(req.body.userId);
+      const client = await clientService.createClient(req.body);
       res.status(201).json({ success: true, data: client });
     } catch (error) {
       next(error);
