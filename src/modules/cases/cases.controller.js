@@ -82,8 +82,7 @@ class CaseController {
       const legalCase = await caseService.update(
         req.params.id,
         req.body,
-        req.user._id,
-        req.user.role
+        req.user
       );
       res.json({
         success: true,
@@ -96,7 +95,7 @@ class CaseController {
 
   async delete(req, res, next) {
     try {
-      await caseService.delete(req.params.id, req.user._id, req.user.role);
+      await caseService.delete(req.params.id, req.user);
       res.json({
         success: true,
         message: 'Case deleted successfully'

@@ -161,15 +161,15 @@ async getById(id, user = null) {
     };
   }
 
-  async update(id, updateData, userId, role) {
+  async update(id, updateData, user) {
     const legalCase = await Case.findById(id);
     if (!legalCase) {
       throw new AppError('Case not found', 404);
     }
 
-    if (role !== 'admin') {
-      const client = await Client.findOne({ user: userId });
-      if (legalCase.client.toString() !== client._id.toString()) {
+    if (user.role !== 'admin' && user.role !== 'superadmin' && !user.isSuperAdmin) {
+      const client = await Client.findOne({ user: user._id });
+      if (!client || legalCase.client.toString() !== client._id.toString()) {
         throw new AppError('You can only update your own cases', 403);
       }
       if (legalCase.status !== 'open') {
@@ -192,15 +192,15 @@ async getById(id, user = null) {
       .populate({ path: 'lawyer', populate: { path: 'user', select: 'full_name' } });
   }
 
-  async delete(id, userId, role) {
+  async delete(id, user) {
     const legalCase = await Case.findById(id);
     if (!legalCase) {
       throw new AppError('Case not found', 404);
     }
 
-    if (role !== 'admin') {
-      const client = await Client.findOne({ user: userId });
-      if (legalCase.client.toString() !== client._id.toString()) {
+    if (user.role !== 'admin' && user.role !== 'superadmin' && !user.isSuperAdmin) {
+      const client = await Client.findOne({ user: user._id });
+      if (!client || legalCase.client.toString() !== client._id.toString()) {
         throw new AppError('You can only delete your own cases', 403);
       }
       if (legalCase.status !== 'open') {
