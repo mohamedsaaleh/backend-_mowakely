@@ -113,7 +113,20 @@ class AdminService {
         office_address: userData.office_address || ''
       });
     } else if (userData.role === 'client') {
-      await Client.create({ user: user._id });
+      await Client.create({
+        user: user._id,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        full_name: user.full_name,
+        phone: user.phone,
+        city: user.city,
+        address: user.address,
+        bio: user.bio,
+        profile_photo: user.profile_photo,
+        is_verified: user.is_verified,
+        is_banned: user.is_banned
+      });
     }
 
     return user.toJSON();
@@ -149,6 +162,14 @@ class AdminService {
 
     await user.save();
 
+    if (user.role === 'client') {
+      const clientUpdate = {};
+      allowedFields.forEach(field => {
+        if (updateData[field] !== undefined) clientUpdate[field] = updateData[field];
+      });
+      await Client.findOneAndUpdate({ user: user._id }, clientUpdate);
+    }
+
     return user.toJSON();
   }
 
@@ -182,6 +203,10 @@ class AdminService {
     user.is_banned = !isActive;
     await user.save();
 
+    if (user.role === 'client') {
+      await Client.findOneAndUpdate({ user: user._id }, { is_banned: user.is_banned });
+    }
+
     return user.toJSON();
   }
 
@@ -197,6 +222,10 @@ class AdminService {
 
     user.is_banned = banned;
     await user.save();
+
+    if (user.role === 'client') {
+      await Client.findOneAndUpdate({ user: user._id }, { is_banned: user.is_banned });
+    }
 
     return user.toJSON();
   }

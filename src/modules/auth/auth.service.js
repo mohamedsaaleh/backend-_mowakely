@@ -41,7 +41,18 @@ class AuthService {
       });
     } else if (userData.role === 'client') {
       await Client.create({
-        user: user._id
+        user: user._id,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        full_name: user.full_name,
+        phone: user.phone,
+        city: user.city,
+        address: user.address,
+        bio: user.bio,
+        profile_photo: user.profile_photo,
+        is_verified: user.is_verified,
+        is_banned: user.is_banned
       });
     }
 

@@ -6,7 +6,7 @@ const QueryBuilder = require('../../utils/queryBuilder');
 class ClientService {
   async getProfile(userId) {
     const client = await Client.findOne({ user: userId })
-      .populate('user', 'full_name email phone profile_photo city address bio');
+      .populate('user', '-password -emailVerificationToken -passwordResetToken -passwordResetExpires');
     if (!client) {
       throw new AppError('Client profile not found', 404);
     }
@@ -19,20 +19,19 @@ class ClientService {
       throw new AppError('Client profile not found', 404);
     }
 
-    const userUpdateFields = {};
-    if (updateData.full_name) userUpdateFields.full_name = updateData.full_name;
-    if (updateData.phone) userUpdateFields.phone = updateData.phone;
-    if (updateData.city) userUpdateFields.city = updateData.city;
-    if (updateData.address) userUpdateFields.address = updateData.address;
-    if (updateData.bio) userUpdateFields.bio = updateData.bio;
-    if (updateData.profile_photo) userUpdateFields.profile_photo = updateData.profile_photo;
+    const updateFields = {};
+    const allowedFields = ['full_name', 'phone', 'city', 'address', 'bio', 'profile_photo'];
+    allowedFields.forEach(field => {
+      if (updateData[field] !== undefined) updateFields[field] = updateData[field];
+    });
 
-    if (Object.keys(userUpdateFields).length > 0) {
-      await User.findByIdAndUpdate(userId, userUpdateFields);
+    if (Object.keys(updateFields).length > 0) {
+      await User.findByIdAndUpdate(userId, updateFields);
+      await Client.findByIdAndUpdate(client._id, updateFields);
     }
 
     return await Client.findById(client._id)
-      .populate('user', 'full_name email phone profile_photo city address bio');
+      .populate('user', '-password -emailVerificationToken -passwordResetToken -passwordResetExpires');
   }
 
   async getAll(query = {}) {
@@ -40,7 +39,7 @@ class ClientService {
       .filter(query)
       .sortBy(query.sort || '-created_at')
       .withPagination(query.page, query.limit)
-      .populateFields('user:full_name email profile_photo')
+      .populateFields('user:-password -emailVerificationToken -passwordResetToken -passwordResetExpires')
       .execute();
 
     return result;
@@ -57,14 +56,28 @@ class ClientService {
       throw new AppError('Client profile already exists for this user', 400);
     }
 
-    const client = await Client.create({ user: userId });
+    const client = await Client.create({
+      user: userId,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      full_name: user.full_name,
+      phone: user.phone,
+      city: user.city,
+      address: user.address,
+      bio: user.bio,
+      profile_photo: user.profile_photo,
+      is_verified: user.is_verified,
+      is_banned: user.is_banned
+    });
+    
     return await Client.findById(client._id)
-      .populate('user', 'full_name email phone profile_photo city address bio');
+      .populate('user', '-password -emailVerificationToken -passwordResetToken -passwordResetExpires');
   }
 
   async getById(clientId) {
     const client = await Client.findById(clientId)
-      .populate('user', 'full_name email phone profile_photo city address bio');
+      .populate('user', '-password -emailVerificationToken -passwordResetToken -passwordResetExpires');
     if (!client) {
       throw new AppError('Client not found', 404);
     }
@@ -77,20 +90,19 @@ class ClientService {
       throw new AppError('Client not found', 404);
     }
 
-    const userUpdateFields = {};
-    if (updateData.full_name) userUpdateFields.full_name = updateData.full_name;
-    if (updateData.phone) userUpdateFields.phone = updateData.phone;
-    if (updateData.city) userUpdateFields.city = updateData.city;
-    if (updateData.address) userUpdateFields.address = updateData.address;
-    if (updateData.bio) userUpdateFields.bio = updateData.bio;
-    if (updateData.profile_photo) userUpdateFields.profile_photo = updateData.profile_photo;
+    const updateFields = {};
+    const allowedFields = ['full_name', 'phone', 'city', 'address', 'bio', 'profile_photo'];
+    allowedFields.forEach(field => {
+      if (updateData[field] !== undefined) updateFields[field] = updateData[field];
+    });
 
-    if (Object.keys(userUpdateFields).length > 0) {
-      await User.findByIdAndUpdate(client.user, userUpdateFields);
+    if (Object.keys(updateFields).length > 0) {
+      await User.findByIdAndUpdate(client.user, updateFields);
+      await Client.findByIdAndUpdate(clientId, updateFields);
     }
 
     return await Client.findById(clientId)
-      .populate('user', 'full_name email phone profile_photo city address bio');
+      .populate('user', '-password -emailVerificationToken -passwordResetToken -passwordResetExpires');
   }
 
   async deleteClient(clientId) {
