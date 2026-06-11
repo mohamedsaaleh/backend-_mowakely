@@ -66,8 +66,8 @@ class CaseService {
 
     const cases = await Case.find(filter)
       .populate('category', 'name')
-      .populate({ path: 'client', select: 'user', populate: { path: 'user', select: 'full_name profile_photo' } })
-      .populate({ path: 'lawyer', select: 'rate', populate: { path: 'user', select: 'full_name' } })
+      .populate({ path: 'client', populate: { path: 'user', select: 'full_name profile_photo' } })
+      .populate({ path: 'lawyer', populate: { path: 'user', select: 'full_name' } })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ created_at: -1 });
@@ -88,8 +88,8 @@ class CaseService {
 async getById(id, user = null) {
     const legalCase = await Case.findById(id)
       .populate('category', 'name')
-      .populate({ path: 'client', select: 'user', populate: { path: 'user', select: 'full_name email profile_photo phone city bio address' } })
-      .populate({ path: 'lawyer', select: 'rate specialization years_of_experience office_address availability_status', populate: { path: 'user', select: 'full_name email profile_photo' } })
+      .populate({ path: 'client', populate: { path: 'user', select: 'full_name email profile_photo phone city bio address' } })
+      .populate({ path: 'lawyer', populate: { path: 'user', select: 'full_name email profile_photo' } })
       .populate('accepted_offer_id');
 
     if (!legalCase) {
@@ -118,7 +118,7 @@ async getById(id, user = null) {
 
     const cases = await Case.find(filter)
       .populate('category', 'name')
-      .populate({ path: 'lawyer', select: 'rate', populate: { path: 'user', select: 'full_name profile_photo' } })
+      .populate({ path: 'lawyer', populate: { path: 'user', select: 'full_name profile_photo' } })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ created_at: -1 });
@@ -143,7 +143,7 @@ async getById(id, user = null) {
 
     const cases = await Case.find(filter)
       .populate('category', 'name')
-      .populate({ path: 'client', select: 'user', populate: { path: 'user', select: 'full_name profile_photo' } })
+      .populate({ path: 'client', populate: { path: 'user', select: 'full_name profile_photo' } })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ created_at: -1 });
@@ -188,8 +188,8 @@ async getById(id, user = null) {
 
     return await Case.findById(id)
       .populate('category', 'name')
-      .populate({ path: 'client', select: 'user', populate: { path: 'user', select: 'full_name email' } })
-      .populate({ path: 'lawyer', select: 'rate', populate: { path: 'user', select: 'full_name' } });
+      .populate({ path: 'client', populate: { path: 'user', select: 'full_name email' } })
+      .populate({ path: 'lawyer', populate: { path: 'user', select: 'full_name' } });
   }
 
   async delete(id, userId, role) {
