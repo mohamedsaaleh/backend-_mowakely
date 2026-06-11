@@ -18,9 +18,25 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['client', 'lawyer', 'admin', 'superadmin'],
-    default: 'client',
+    // We remove the strict enum to allow dynamic role assignment (e.g., custom admin roles)
+    // while keeping default ones like 'client', 'lawyer'
     required: [true, 'Role is required']
+  },
+  permissions: [{
+    type: String,
+  }],
+  isSuperAdmin: {
+    type: Boolean,
+    default: false
+  },
+  status: {
+    type: String,
+    enum: ['active', 'suspended'],
+    default: 'active'
+  },
+  deletedAt: {
+    type: Date,
+    default: null
   },
   full_name: {
     type: String,
@@ -85,7 +101,15 @@ const userSchema = new mongoose.Schema({
 
 userSchema.index({ role: 1 });
 userSchema.index({ is_banned: 1 });
+userSchema.index({ status: 1 });
+userSchema.index({ deletedAt: 1 });
 userSchema.index({ created_at: -1 });
+
+// Soft delete query middleware
+userSchema.pre(/^find/, function(next) {
+  this.find({ deletedAt: null });
+  next();
+});
 
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {

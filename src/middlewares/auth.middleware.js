@@ -26,8 +26,12 @@ const authenticate = async (req, res, next) => {
       return next(new AppError('User no longer exists.', 401));
     }
 
-    if (user.is_banned) {
-      return next(new AppError('Your account has been banned. Contact support.', 403));
+    if (user.is_banned || user.status === 'suspended') {
+      return next(new AppError('Your account has been suspended. Contact support.', 403));
+    }
+    
+    if (user.deletedAt) {
+      return next(new AppError('User account has been deleted.', 401));
     }
 
     req.user = user;
@@ -52,7 +56,7 @@ const optionalAuth = async (req, res, next) => {
       const decoded = jwt.verify(token, config.jwt.secret);
       if (decoded.type === 'access') {
         const user = await User.findById(decoded.id);
-        if (user && !user.is_banned) {
+        if (user && !user.is_banned && user.status !== 'suspended' && !user.deletedAt) {
           req.user = user;
         }
       }

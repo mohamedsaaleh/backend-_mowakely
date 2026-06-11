@@ -142,6 +142,11 @@ const payoutRoutes = require('./modules/payouts/payouts.routes');
 const userRoutes = require('./modules/users/users.routes');
 const paymentRoutes = require('./modules/payments/payments.routes');
 
+// PBAC and New Admin routes
+const roleRoutes = require('./modules/roles/roles.routes');
+const adminsManageRoutes = require('./modules/admins/admins.routes');
+const auditRoutes = require('./modules/audit/audit.routes');
+
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/cases', caseRoutes);
@@ -157,6 +162,11 @@ app.use('/api/superadmin', superadminRoutes);
 app.use('/api/payouts', payoutRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes);
+
+// PBAC and New Admin routes
+app.use('/api/roles', roleRoutes);
+app.use('/api/admins-manage', adminsManageRoutes);
+app.use('/api/audit-logs', auditRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
