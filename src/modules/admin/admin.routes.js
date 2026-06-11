@@ -825,36 +825,7 @@ router.use(authenticate, authorize('admin', 'superadmin'));
 // ==================== DASHBOARD ====================
 router.get('/dashboard', adminController.getDashboardStats);
 
-// ==================== USER MANAGEMENT ====================
-router.get('/users', adminController.getAllUsers);
-router.get('/users/:id', adminController.getUserById);
-router.post('/users', validate(createUserSchema), adminController.createUser);
-router.put('/users/:id', validate(updateUserSchema), adminController.updateUser);
-router.delete('/users/:id', adminController.deleteUser);
-router.patch('/users/:id/toggle-active', validate(toggleUserActiveSchema), adminController.toggleUserActive);
-router.patch('/users/:id/ban', adminController.banUser);
 
-// ==================== LAWYER MANAGEMENT ====================
-router.get('/lawyers', adminController.getAllLawyers);
-router.get('/lawyers/:id', adminController.getLawyerById);
-router.post('/lawyers', validate(createLawyerSchema), adminController.createLawyer);
-router.put('/lawyers/:id', validate(updateLawyerSchema), adminController.updateLawyer);
-router.delete('/lawyers/:id', adminController.deleteLawyer);
-router.patch('/lawyers/:id/verify', validate(verifyLawyerSchema), adminController.verifyLawyer);
-
-// ==================== CASE MANAGEMENT ====================
-router.get('/cases', adminController.getAllCases);
-router.get('/cases/:id', adminController.getCaseById);
-router.post('/cases', validate(createCaseSchema), adminController.createCase);
-router.put('/cases/:id', validate(updateCaseSchema), adminController.updateCase);
-router.delete('/cases/:id', adminController.deleteCase);
-
-// ==================== CATEGORY MANAGEMENT ====================
-router.get('/categories', adminController.getAllCategories);
-router.get('/categories/:id', adminController.getCategoryById);
-router.post('/categories', validate(createCategorySchema), adminController.createCategory);
-router.put('/categories/:id', validate(updateCategorySchema), adminController.updateCategory);
-router.delete('/categories/:id', adminController.deleteCategory);
 
 // ==================== INVOICES ====================
 router.patch('/invoices/:id/force-pay', adminController.markAsPaidOnly);

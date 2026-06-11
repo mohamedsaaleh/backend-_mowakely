@@ -63,6 +63,24 @@ class LawyerController {
       next(error);
     }
   }
+
+  async verifyLawyer(req, res, next) {
+    try {
+      const lawyer = await lawyerService.verifyLawyer(req.params.id, true);
+      res.json({ success: true, data: lawyer });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async unverifyLawyer(req, res, next) {
+    try {
+      const lawyer = await lawyerService.verifyLawyer(req.params.id, false);
+      res.json({ success: true, data: lawyer });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new LawyerController();

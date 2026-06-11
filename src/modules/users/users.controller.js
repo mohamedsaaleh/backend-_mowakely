@@ -46,6 +46,37 @@ class UsersController {
       next(error);
     }
   }
+
+  async toggleActive(req, res, next) {
+    try {
+      const { isActive } = req.body;
+      const user = await usersService.toggleActive(req.params.id, isActive);
+      if (!user) return errorResponse(res, 'User not found', 404);
+      return successResponse(res, 'User active status updated', user);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async banUser(req, res, next) {
+    try {
+      const user = await usersService.toggleBanUser(req.params.id, true);
+      if (!user) return errorResponse(res, 'User not found', 404);
+      return successResponse(res, 'User banned successfully', user);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async unbanUser(req, res, next) {
+    try {
+      const user = await usersService.toggleBanUser(req.params.id, false);
+      if (!user) return errorResponse(res, 'User not found', 404);
+      return successResponse(res, 'User unbanned successfully', user);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UsersController();

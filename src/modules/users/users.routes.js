@@ -119,5 +119,8 @@ router.get('/', authenticate, authorize('admin'), usersController.getAll);
 router.get('/:id', authenticate, usersController.getById);
 router.patch('/:id', authenticate, usersController.update);
 router.delete('/:id', authenticate, authorize('admin'), usersController.delete);
+router.patch('/:id/toggle-active', authenticate, authorize('admin', 'superadmin'), usersController.toggleActive);
+router.patch('/:id/ban', authenticate, authorize('admin', 'superadmin'), usersController.banUser);
+router.patch('/:id/unban', authenticate, authorize('admin', 'superadmin'), usersController.unbanUser);
 
 module.exports = router;

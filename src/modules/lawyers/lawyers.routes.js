@@ -230,4 +230,43 @@ router.put('/:id', authenticate, authorize('admin', 'lawyer'), lawyerController.
  */
 router.delete('/:id', authenticate, authorize('admin'), lawyerController.deleteById);
 
+/**
+ * @swagger
+ * /lawyers/{id}/verify:
+ *   patch:
+ *     summary: Verify lawyer by ID
+ *     description: Verify or unverify a lawyer (admin only)
+ *     tags: [Lawyers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - verified
+ *             properties:
+ *               verified:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Lawyer verification updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Lawyer not found
+ */
+router.patch('/:id/verify', authenticate, authorize('admin', 'superadmin'), lawyerController.verifyLawyer);
+router.patch('/:id/unverify', authenticate, authorize('admin', 'superadmin'), lawyerController.unverifyLawyer);
+
 module.exports = router;

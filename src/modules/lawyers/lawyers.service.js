@@ -165,6 +165,24 @@ class LawyerService {
     
     return { message: 'Lawyer deleted successfully' };
   }
+
+  async verifyLawyer(lawyerId, isVerified = true) {
+    const lawyer = await Lawyer.findById(lawyerId);
+    if (!lawyer) {
+      throw new AppError('Lawyer profile not found', 404);
+    }
+
+    lawyer.is_verified = isVerified;
+    if (isVerified) {
+      lawyer.verification_date = new Date();
+    }
+    await lawyer.save();
+
+    await User.findByIdAndUpdate(lawyer.user, { is_verified: isVerified });
+    await this.invalidateCache(lawyer._id, lawyer.user);
+
+    return await Lawyer.findById(lawyerId).populate('user', 'full_name email phone profile_photo');
+  }
 }
 
 module.exports = new LawyerService();

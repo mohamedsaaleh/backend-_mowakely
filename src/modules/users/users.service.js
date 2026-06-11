@@ -61,6 +61,11 @@ class UsersService {
     return await User.findByIdAndUpdate(id, { is_banned: banned }, { new: true })
       .select('-password -emailVerificationToken -passwordResetToken -passwordResetExpires');
   }
+
+  async toggleActive(id, isActive) {
+    return await User.findByIdAndUpdate(id, { is_verified: isActive }, { new: true })
+      .select('-password -emailVerificationToken -passwordResetToken -passwordResetExpires');
+  }
 }
 
 module.exports = new UsersService();
