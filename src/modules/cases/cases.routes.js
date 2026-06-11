@@ -114,7 +114,7 @@ router.post('/', authenticate, authorize('client'), validate(createCaseSchema), 
  *       401:
  *         description: Unauthorized
  */
-router.get('/', caseController.getAll);
+router.get('/', authenticate, caseController.getAll);
 router.get('/my-cases', authenticate, authorize('client'), caseController.getMyCases);
 
 /**

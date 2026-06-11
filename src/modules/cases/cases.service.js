@@ -18,8 +18,7 @@ class CaseService {
 
     return await Case.findById(legalCase._id)
       .populate('category', 'name')
-      .populate('client', 'user')
-      .populate('client.user', 'full_name email profile_photo');
+      .populate({ path: 'client', select: 'user', populate: { path: 'user', select: 'full_name email profile_photo' } });
   }
 
   async getAll(query = {}, user = null) {
@@ -37,7 +36,7 @@ class CaseService {
     const filter = {};
 
     if (user) {
-      if (user.role === 'admin') {
+      if (user.role === 'admin' || user.role === 'superadmin' || user.isSuperAdmin) {
         // Admin can see all cases - no additional filter
       } else if (user.role === 'lawyer') {
         // Lawyer can only see open cases without a lawyer assigned
@@ -67,10 +66,8 @@ class CaseService {
 
     const cases = await Case.find(filter)
       .populate('category', 'name')
-      .populate('client', 'user')
-      .populate('client.user', 'full_name profile_photo')
-      .populate('lawyer', 'rate')
-      .populate('lawyer.user', 'full_name')
+      .populate({ path: 'client', select: 'user', populate: { path: 'user', select: 'full_name profile_photo' } })
+      .populate({ path: 'lawyer', select: 'rate', populate: { path: 'user', select: 'full_name' } })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ created_at: -1 });
@@ -91,17 +88,15 @@ class CaseService {
 async getById(id, user = null) {
     const legalCase = await Case.findById(id)
       .populate('category', 'name')
-      .populate('client', 'user')
-      .populate('client.user', 'full_name email profile_photo phone city bio address')
-      .populate('lawyer', 'rate specialization years_of_experience office_address availability_status')
-      .populate('lawyer.user', 'full_name email profile_photo')
+      .populate({ path: 'client', select: 'user', populate: { path: 'user', select: 'full_name email profile_photo phone city bio address' } })
+      .populate({ path: 'lawyer', select: 'rate specialization years_of_experience office_address availability_status', populate: { path: 'user', select: 'full_name email profile_photo' } })
       .populate('accepted_offer_id');
 
     if (!legalCase) {
       throw new AppError('Case not found', 404);
     }
 
-    if (user && user.role !== 'admin') {
+    if (user && user.role !== 'admin' && user.role !== 'superadmin' && !user.isSuperAdmin) {
       const client = await Client.findOne({ user: user._id });
       const lawyer = await Lawyer.findOne({ user: user._id });
 
@@ -123,8 +118,7 @@ async getById(id, user = null) {
 
     const cases = await Case.find(filter)
       .populate('category', 'name')
-      .populate('lawyer', 'rate')
-      .populate('lawyer.user', 'full_name profile_photo')
+      .populate({ path: 'lawyer', select: 'rate', populate: { path: 'user', select: 'full_name profile_photo' } })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ created_at: -1 });
@@ -149,8 +143,7 @@ async getById(id, user = null) {
 
     const cases = await Case.find(filter)
       .populate('category', 'name')
-      .populate('client', 'user')
-      .populate('client.user', 'full_name profile_photo')
+      .populate({ path: 'client', select: 'user', populate: { path: 'user', select: 'full_name profile_photo' } })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ created_at: -1 });
@@ -195,10 +188,8 @@ async getById(id, user = null) {
 
     return await Case.findById(id)
       .populate('category', 'name')
-      .populate('client', 'user')
-      .populate('client.user', 'full_name email')
-      .populate('lawyer', 'rate')
-      .populate('lawyer.user', 'full_name');
+      .populate({ path: 'client', select: 'user', populate: { path: 'user', select: 'full_name email' } })
+      .populate({ path: 'lawyer', select: 'rate', populate: { path: 'user', select: 'full_name' } });
   }
 
   async delete(id, userId, role) {
