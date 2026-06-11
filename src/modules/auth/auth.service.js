@@ -156,7 +156,7 @@ class AuthService {
 
     const refreshTokenDoc = await RefreshToken.findOne({
       token: hashedToken,
-      isRevoke: false,
+      isRevoked: false,
       expiresAt: { $gt: new Date() }
     }).populate('user');
 
@@ -166,7 +166,7 @@ class AuthService {
 
     await RefreshToken.updateMany(
       { user: refreshTokenDoc.user._id },
-      { $set: { isRevoke: true } }
+      { $set: { isRevoked: true } }
     );
 
     const user = refreshTokenDoc.user;
@@ -186,13 +186,13 @@ class AuthService {
 
       await RefreshToken.findOneAndUpdate(
         { token: hashedToken, user: userId },
-        { $set: { isRevoke: true } }
+        { $set: { isRevoked: true } }
       );
     }
 
     await RefreshToken.updateMany(
       { user: userId },
-      { $set: { isRevoke: true } }
+      { $set: { isRevoked: true } }
     );
 
     return { message: 'Logged out successfully' };
@@ -257,7 +257,7 @@ class AuthService {
 
     await RefreshToken.updateMany(
       { user: user._id },
-      { $set: { isRevoke: true } }
+      { $set: { isRevoked: true } }
     );
 
     await user.save();

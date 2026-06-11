@@ -14,7 +14,11 @@ class QueryBuilder {
   filter(filters) {
     if (!filters || typeof filters !== 'object') return this;
 
+    const excludeFields = ['page', 'sort', 'limit', 'fields'];
+
     Object.keys(filters).forEach(key => {
+      if (excludeFields.includes(key)) return;
+
       if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
         if (key === 'search') {
           const searchValue = escapeRegex(filters[key]);
